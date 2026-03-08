@@ -1,0 +1,247 @@
+.mobile-header {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 70px;
+  background-color: #ffffff;
+  border-bottom: 1px solid var(--borda-cinza);
+  z-index: 40;
+  align-items: center;
+  padding: 0 15px;
+  box-sizing: border-box;
+}
+
+.menu-hamburguer {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--azul-carbike);
+  padding: 5px;
+}
+
+.mobile-logo-container {
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  padding-right: 30px; /* offset para centralizar devido ao botao esquerdo */
+}
+
+.mobile-logo {
+  height: 40px;
+  object-fit: contain;
+}
+
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 45;
+}
+
+.close-sidebar-btn {
+  display: none;
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--cinza-texto);
+}
+
+/* =========================================
+   MEDIA QUERIES (RESPONSIVIDADE) 
+========================================= */
+@media screen and (max-width: 768px) {
+  /* Header e Toggle Sidebar Mobile */
+  .mobile-header {
+    display: flex;
+  }
+
+  .sidebar-overlay.active {
+    display: block;
+  }
+
+  .sidebar-container {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+    width: 260px; /* Maior no mobile para leitura */
+  }
+
+  .sidebar-container.open {
+    transform: translateX(0);
+  }
+
+  .close-sidebar-btn {
+    display: block;
+  }
+
+  .main-wrapper {
+    margin-left: 0;
+    padding: 90px 20px 30px 20px; /* Padding top compensa o Header Fixo */
+  }
+
+  .vehicle-card {
+    min-width: 240px; /* Garante tamanho ok no drag do swiper mobile */
+  }
+
+  .ad-mobile-full {
+    width: calc(100% + 40px);
+    margin-left: -20px;
+  }
+
+  /* =========================================
+     TELA DE OFERTAS ( responsivo )
+  ========================================= */
+  .ofertas-container {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .main-ofertas-content {
+    margin-right: 0; 
+    padding: 80px 15px 30px 15px; /* Compensa header mobile */
+  }
+
+  .sidebar-filters {
+    position: fixed;
+    right: -100%; /* Esconde fora da tela à direita */
+    width: 280px;
+    z-index: 200;
+    transition: right 0.3s ease-in-out;
+  }
+
+  .sidebar-filters.open {
+    right: 0; /* Desliza para dentro */
+  }
+
+  .filter-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 150;
+    display: none;
+  }
+
+  .filter-overlay.active {
+    display: block;
+  }
+
+  .filter-header-mobile {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 15px;
+    border-bottom: 1px solid var(--borda-cinza);
+  }
+  
+  .filter-header-mobile h3 {
+    margin: 0;
+    color: var(--azul-carbike);
+    font-size: 18px;
+    font-weight: bold;
+  }
+
+  .close-filter-btn {
+    background: transparent;
+    border: none;
+    color: var(--cinza-texto);
+    cursor: pointer;
+  }
+
+  /* =========================================
+     TELA DETALHES VEÍCULO ( responsivo )
+  ========================================= */
+  .veiculo-detalhes-page {
+    margin-left: 0;
+    width: 100%;
+    margin-top: 60px; /* header mobile start */
+  }
+
+  .carousel-wrapper {
+     padding: 0px 10px;
+  }
+  .carousel-img {
+     height: 250px;
+  }
+
+  .info-box {
+    width: 95%; /* Expande quadro branco lateral em celulares */
+    border-top-left-radius: 30px;
+    border-top-right-radius: 30px;
+    margin-top: -30px;
+  }
+
+  .info-profile-logo {
+     width: 110px;
+     height: 110px;
+     margin-top: -55px; /* Compensa novo tamanho da bola */
+     margin-left: auto;
+     margin-right: auto;
+  }
+
+  .info-header {
+     text-align: center;
+  }
+  .nomeCarroTitulo {
+     font-size: 24px;
+     text-align: center;
+  }
+  
+  .info-carro-preco {
+    text-align: center;
+    margin-top: 15px;
+  }
+
+  /* QUEBRA AS COLUNAS DOS DETALHES DE DADOS */
+  .grupo-dado {
+     width: 50%; /* Faz 2 no celular ou ate 1 se MT pequeno */
+  }
+  .dado-titulo {
+     font-size: 18px; /* Era 26px */
+  }
+  .dado-valor {
+     font-size: 15px;
+  }
+
+  /* Barra Fixa Flutuante Inferior Botões de Ação Mobile */
+  .buttons-contact-bar {
+     left: 0;
+     width: 100%;
+     height: 70px;
+     padding: 0 8px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .page-title {
+    font-size: 20px;
+  }
+  
+  .alert-banner {
+    font-size: 11px;
+    line-height: 1.4;
+  }
+  
+  .custom-select {
+    font-size: 13px;
+  }
+
+  .main-wrapper {
+    padding: 90px 15px 30px 15px;
+  }
+
+  .ad-mobile-full {
+    width: calc(100% + 30px);
+    margin-left: -15px;
+  }
+}
