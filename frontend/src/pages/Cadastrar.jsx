@@ -22,7 +22,7 @@ const Cadastrar = () => {
 
     setLoading(true);
     try {
-      const response = await axios.post('http://localhost:3000/auth/register', {
+      const response = await axios.post('https://backend.carbike.com.br/auth/register', {
         email,
         password
       });

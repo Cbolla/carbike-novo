@@ -23,7 +23,7 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
 
       <aside className={`sidebar-container ${isOpen ? 'open' : ''}`}>
         <div className="sidebar-logo-area" style={{ position: 'relative' }}>
-          <img src="/logo.png" alt="Carbike Logo" className="sidebar-logo" />
+          <img src="./logo.png" alt="Carbike Logo" className="sidebar-logo" />
           
           <button className="close-sidebar-btn" onClick={closeSidebar}>
             <X size={24} />
@@ -58,15 +58,8 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
           <span>Compre<br/>Seguro</span>
         </button>
 
-        {/* Propaganda Desktop (Escondida no Mobile por default na refatoracao principal) */}
-        <div className="sidebar-ad hidden md:flex mt-auto mb-6 mx-4 p-2 border border-dashed border-[var(--borda-cinza)] bg-[#f8f9fa] items-center justify-center flex-col text-center rounded-lg">
-           <span className="text-[10px] text-[var(--cinza-texto)] font-bold uppercase tracking-widest mb-2">Publicidade</span>
-           <img 
-              src="https://dummyimage.com/300x250/002b5e/ffffff&text=Banner+300x250" 
-              alt="Publicidade" 
-              className="w-full h-auto object-cover rounded cursor-pointer"
-           />
-        </div>
+        {/* Espaço reservado para publicidade futura */}
+        <div className="hidden md:block mt-auto mb-6 mx-4" />
       </nav>
       </aside>
 

@@ -28,7 +28,7 @@ const MOCK_VEHICLE_DETAILS = {
   dataAnuncio: '05/03/2026',
   tipoAnuncio: 'loja',
   descricao: 'Veículo super conservado, único dono, todas as revisões na concessionária. Completo de fábrica: Ar condicionado, Direção Elétrica, Vidros e Travas Elétricas, Central Multimídia MyLink original, Android Auto/Apple CarPlay, Computador de bordo, Câmera e Sensor de Ré. Laudo cautelar 100% aprovado.',
-  imagens: ['/img/21.png', '/img/22.png', '/img/23.png', '/img/20.png'],
+  imagens: ['./img/21.png', './img/22.png', './img/23.png', './img/20.png'],
   loja: {
     id: 15,
     nome: 'Campinas Autos',
@@ -239,7 +239,7 @@ const VeiculoDetalhes = () => {
          </button>
 
          <a href={`https://wa.me/${vehicle.loja.telefone}?text=Olá! Gostaria de mais detalhes sobre o veículo ${vehicle.marca} ${vehicle.modelo} anunciado no Carbike.`} target="_blank" rel="noopener noreferrer" className="botao-whats w-[48%] md:w-[300px] h-[50px] md:h-[60px] bg-[#008000] hover:bg-[#006000] text-white rounded-full flex items-center justify-center transition-colors">
-            <img src="/img/icon/whats.svg" alt="WhatsApp" className="w-[20px] md:w-[25px] mr-2" />
+            <img src="./img/icon/whats.svg" alt="WhatsApp" className="w-[20px] md:w-[25px] mr-2" />
             <p className="font-bold text-sm md:text-base">Entre em Contato</p>
          </a>
       </div>
@@ -264,7 +264,7 @@ const VeiculoDetalhes = () => {
                 <X size={28} />
               </button>
               
-              <img src="/img/bancoDaycoval.png" alt="Banco Daycoval" className="bancoSimuladorImg" />
+              <img src="./img/bancoDaycoval.png" alt="Banco Daycoval" className="bancoSimuladorImg" />
               <h2>Simule com Banco Daycoval</h2>
               
               <form className="simulation-form" onSubmit={handleSimulate}>

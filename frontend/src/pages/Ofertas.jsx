@@ -1,26 +1,36 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Filter, X } from 'lucide-react';
 import VehicleCard from '../components/VehicleCard';
 import '../custom.css';
 
-// Mock de dados para preencher a pagina de ofertas (Baseado na Home + Extras)
-const MOCK_OFERTAS = [
-  { id: 1, marca: 'Chevrolet', modelo: 'Onix 1.0 MT LT', ano: '2020/2020', preco: '62.500', km: '35000', local: 'Campinas - SP', tipo: 'particular', img: '/img/21.png' },
-  { id: 2, marca: 'Toyota', modelo: 'Corolla XEI 2.0', ano: '2022/2023', preco: '145.000', km: '15000', local: 'São Paulo - SP', tipo: 'loja', img: '/img/22.png', logoLoja: 'https://dummyimage.com/100x100/e0e0e0/555&text=T' },
-  { id: 3, marca: 'Volkswagen', modelo: 'Nivus Highline', ano: '2023/2024', preco: '128.900', km: '5000', local: 'Mogi Mirim - SP', tipo: 'loja', img: '/img/23.png', logoLoja: 'https://dummyimage.com/100x100/e0e0e0/555&text=V' },
-  { id: 4, marca: 'Honda', modelo: 'Civic LXR 2.0 Flex', ano: '2015/2016', preco: '75.900', km: '85000', local: 'Mogi Guaçu - SP', tipo: 'loja', img: '/img/20.png', logoLoja: 'https://dummyimage.com/100x100/e0e0e0/555&text=H' },
-  { id: 5, marca: 'Hyundai', modelo: 'HB20 1.0 Comfort', ano: '2019/2019', preco: '55.000', km: '42000', local: 'Americana - SP', tipo: 'particular', img: '' },
-  { id: 6, marca: 'Jeep', modelo: 'Compass Longitude', ano: '2021/2022', preco: '135.000', km: '28000', local: 'Piracicaba - SP', tipo: 'loja', img: '', logoLoja: 'https://dummyimage.com/100x100/e0e0e0/555&text=J' },
-  { id: 7, marca: 'Fiat', modelo: 'Toro Volcano Diesel', ano: '2022/2023', preco: '175.000', km: '22000', local: 'Jundiaí - SP', tipo: 'loja', img: '', logoLoja: 'https://dummyimage.com/100x100/e0e0e0/555&text=F' },
-  { id: 8, marca: 'Ford', modelo: 'Ka 1.0 SE Plus', ano: '2019/2020', preco: '48.900', km: '52000', local: 'Sumaré - SP', tipo: 'particular', img: '/img/23.png' },
-  { id: 9, marca: 'Renault', modelo: 'Kwid Zen 1.0', ano: '2021/2022', preco: '45.500', km: '31000', local: 'Valinhos - SP', tipo: 'loja', img: '/img/21.png', logoLoja: 'https://dummyimage.com/100x100/e0e0e0/555&text=R' },
-  { id: 10, marca: 'BMW', modelo: '320i Sport GP', ano: '2020/2020', preco: '215.000', km: '29000', local: 'São Paulo - SP', tipo: 'loja', img: '/img/22.png', logoLoja: 'https://dummyimage.com/100x100/e0e0e0/555&text=B' },
-  { id: 11, marca: 'Nissan', modelo: 'Kicks Advance', ano: '2023/2024', preco: '118.000', km: '12000', local: 'Indaiatuba - SP', tipo: 'loja', img: '/img/20.png', logoLoja: 'https://dummyimage.com/100x100/e0e0e0/555&text=N' },
-  { id: 12, marca: 'Volkswagen', modelo: 'Polo Track', ano: '2023/2024', preco: '82.000', km: '8000', local: 'Campinas - SP', tipo: 'particular', img: '' }
-];
+const API_URL = '';
 
 const Ofertas = () => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [veiculos, setVeiculos] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(API_URL + '/veiculos')
+      .then(r => r.json())
+      .then(data => {
+        if (!data.error) setVeiculos(data.veiculos);
+      })
+      .catch(err => console.error('Erro ao buscar ofertas:', err))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const mapVeiculo = (v) => ({
+    id: v.id,
+    marca: v.marca,
+    modelo: v.modelo,
+    ano: v.ano,
+    preco: Number(v.preco).toLocaleString('pt-BR'),
+    km: v.km,
+    local: v.cidade || 'Brasil',
+    tipoAnuncio: v.tipoVendedor === 'JURIDICA' ? 'loja' : 'particular',
+    imagem: v.fotoUrl || ''
+  });
 
   const toggleFilters = () => setIsFilterOpen(!isFilterOpen);
 
@@ -40,9 +50,21 @@ const Ofertas = () => {
            </div>
         </div>
 
+        {loading && (
+          <div className="flex justify-center items-center py-10 text-[var(--primary-color)] font-bold">
+            Carregando veículos...
+          </div>
+        )}
+
+        {!loading && veiculos.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+            <p className="text-lg font-bold">Nenhum veículo disponível no momento.</p>
+          </div>
+        )}
+
         <div className="ofertas-grid">
-           {MOCK_OFERTAS.map(v => (
-             <VehicleCard key={v.id} {...v} />
+           {veiculos.map(v => (
+             <VehicleCard key={v.id} {...mapVeiculo(v)} />
            ))}
         </div>
       </div>

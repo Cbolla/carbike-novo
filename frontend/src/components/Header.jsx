@@ -11,7 +11,7 @@ const Header = ({ toggleSidebar }) => {
 
       <div className="mobile-logo-container">
         <img 
-          src="/logo.png" 
+          src="./logo.png" 
           alt="Carbike" 
           className="mobile-logo"
           onClick={() => window.scrollTo(0, 0)}

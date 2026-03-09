@@ -18,14 +18,21 @@ const Login = () => {
     setErrorMsg('');
     setIsLoading(true);
 
+    // URL da API — localhost pra testes locais, URL real para produção
+    const API_URL = '';
+
     try {
-      const response = await fetch('http://localhost:3000/auth/login', {
+      console.log('[Carbike] Tentando login em:', API_URL + '/auth/login');
+
+      const response = await fetch(API_URL + '/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
       });
 
+      console.log('[Carbike] Resposta HTTP status:', response.status);
       const data = await response.json();
+      console.log('[Carbike] Dados recebidos:', data);
 
       if (data.error) {
          setErrorMsg(data.mensagem);
@@ -37,7 +44,9 @@ const Login = () => {
          navigate('/'); // Volta para a tela inicial (Dashboard do Site)
       }
     } catch (err) {
-       console.error(err);
+       console.error('[Carbike] ERRO COMPLETO:', err);
+       console.error('[Carbike] Tipo do erro:', err.name);
+       console.error('[Carbike] Mensagem:', err.message);
        setErrorMsg('Erro de rede: O servidor API possivelmente está offline.');
     } finally {
        setIsLoading(false);
@@ -63,7 +72,7 @@ const Login = () => {
   return (
     <div className="login-page-container w-full h-screen overflow-hidden flex flex-col relative bg-white">
       {/* Logos & Fechar */}
-      <img src="/img/logo.png" alt="Carbike Logo" className="absolute top-5 left-1/2 -translate-x-1/2 w-[100px] z-20 cursor-pointer" onClick={() => navigate('/')} />
+      <img src="./img/logo.png" alt="Carbike Logo" className="absolute top-5 left-1/2 -translate-x-1/2 w-[100px] z-20 cursor-pointer" onClick={() => navigate('/')} />
       <button onClick={() => navigate('/')} className="absolute top-5 right-8 z-20 text-gray-500 hover:text-red-500 transition-colors">
         <X size={35} />
       </button>
@@ -124,7 +133,7 @@ const Login = () => {
         {/* Left Side - Image (Hidden in mobile by CSS/Tailwind) */}
         <div className="hidden md:flex w-1/2 h-full justify-center items-center relative overflow-hidden">
            {/* Placeholder if SVG is missing, using generic vehicle image approach */}
-           <img src="/img/carro-lateral.svg" alt="Illustration" className="w-[80%] max-w-[600px] object-contain" onError={(e) => e.target.style.display='none'} />
+           <img src="./img/carro-lateral.svg" alt="Illustration" className="w-[80%] max-w-[600px] object-contain" onError={(e) => e.target.style.display='none'} />
         </div>
 
       </div>

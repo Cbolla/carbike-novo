@@ -153,6 +153,105 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage, limits: { fileSize: 20 * 1024 * 1024 } }); // 20MB
 
 // ==========================================
+// LISTAR LOJAS (JURIDICA)
+// ==========================================
+app.get('/lojas', async (req, res) => {
+  try {
+    const [rows] = await db.execute(`
+      SELECT id, name AS nome, city AS cidade, file_path_user AS logo
+      FROM Usuario
+      WHERE person_type = 'JURIDICA' AND active = 1
+      ORDER BY name ASC
+      LIMIT 30
+    `);
+
+    const BASE_URL = 'https://backend.carbike.com.br/uploads/';
+    const lojas = rows.map(l => ({
+      ...l,
+      logoUrl: l.logo && l.logo !== 'user_default.png' ? BASE_URL + l.logo : null
+    }));
+
+    return res.json({ error: false, lojas });
+  } catch (error) {
+    console.error("Erro na rota GET /lojas:", error);
+    return res.status(500).json({ error: true, mensagem: 'Erro ao buscar lojas.' });
+  }
+});
+
+// ==========================================
+// VEÍCULOS DO USUÁRIO LOGADO (PAINEL)
+// ==========================================
+app.get('/veiculos/meus', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ error: true, mensagem: 'Não autorizado.' });
+    const token = authHeader.split(' ')[1];
+    let decoded;
+    try { decoded = jwt.verify(token, JWT_SECRET); } catch (e) {
+      return res.status(401).json({ error: true, mensagem: 'Sessão expirada.' });
+    }
+
+    const [rows] = await db.execute(`
+      SELECT 
+        c.id, c.brand AS marca, c.model AS modelo, c.version AS versao,
+        c.year AS ano, c.price AS preco, c.mileage AS km,
+        c.sector AS tipo, c.active, c.highlight, c.creation_date, c.file_path
+      FROM Carro c
+      WHERE c.responsible = ?
+      ORDER BY c.creation_date DESC
+    `, [decoded.idUser]);
+
+    const BASE_URL = 'https://backend.carbike.com.br/uploads/';
+    const veiculos = rows.map(v => ({
+      ...v,
+      fotoUrl: v.file_path && v.file_path !== 'carro_default.png'
+        ? BASE_URL + v.file_path
+        : null
+    }));
+
+    return res.json({ error: false, veiculos });
+  } catch (error) {
+    console.error("Erro na rota GET /veiculos/meus:", error);
+    return res.status(500).json({ error: true, mensagem: 'Erro ao buscar seus veículos.' });
+  }
+});
+
+// ==========================================
+// LISTAR VEÍCULOS (HOME)
+// ==========================================
+app.get('/veiculos', async (req, res) => {
+  try {
+    const [rows] = await db.execute(`
+      SELECT 
+        c.id, c.brand AS marca, c.model AS modelo, c.version AS versao,
+        c.year AS ano, c.price AS preco, c.mileage AS km,
+        c.fuel AS combustivel, c.transmission AS cambio,
+        c.color AS cor, c.info, c.file_path, c.sector AS tipo,
+        c.active, c.highlight, c.creation_date,
+        u.name AS nomeVendedor, u.person_type AS tipoVendedor, u.city AS cidade
+      FROM Carro c
+      LEFT JOIN Usuario u ON c.responsible = u.id
+      WHERE c.active = 1
+      ORDER BY c.highlight DESC, c.creation_date DESC
+      LIMIT 50
+    `);
+
+    const BASE_URL = 'https://backend.carbike.com.br/uploads/';
+    const veiculos = rows.map(v => ({
+      ...v,
+      fotoUrl: v.file_path && v.file_path !== 'carro_default.png'
+        ? BASE_URL + v.file_path
+        : null
+    }));
+
+    return res.json({ error: false, veiculos });
+  } catch (error) {
+    console.error("Erro na rota GET /veiculos:", error);
+    return res.status(500).json({ error: true, mensagem: 'Erro ao buscar veículos.' });
+  }
+});
+
+// ==========================================
 // CADASTRO DE VEÍCULOS
 // ==========================================
 app.post('/veiculos', upload.array('fotos', 10), async (req, res) => {
@@ -169,6 +268,16 @@ app.post('/veiculos', upload.array('fotos', 10), async (req, res) => {
      
      // Recupera os dados vindo do FormData do Frontend
      const { sector, brand, model, version, year, price, mileage, transmission, info } = req.body;
+
+     // Validação dos campos obrigatórios
+     if (!sector || !brand || !model || !version || !year || !price || !mileage) {
+       return res.status(400).json({ error: true, mensagem: 'Preencha todos os campos obrigatórios do veículo.' });
+     }
+
+     // Foto é obrigatória
+     if (!req.files || req.files.length === 0) {
+       return res.status(400).json({ error: true, mensagem: 'É obrigatório enviar ao menos 1 foto do veículo.' });
+     }
      
      // Converte para Float o Preço R$ 62.500,00 -> 62500.00
      const priceClean = price ? parseFloat(price.replace(/\./g, '').replace(',', '.')) : 0;
