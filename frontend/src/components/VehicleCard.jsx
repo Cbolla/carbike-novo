@@ -1,45 +1,43 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Calendar, Activity } from 'lucide-react';
+import { MapPin, Calendar, Activity, User } from 'lucide-react';
 import '../custom.css';
 
-const VehicleCard = ({ id, imagem, marca, modelo, ano, preco, km, local, tipoAnuncio = 'loja', logoLoja, idLoja }) => {
+const VehicleCard = ({ id, imagem, marca, modelo, ano, preco, km, local, tipoAnuncio = 'loja', logoLoja, idLoja, used }) => {
   return (
     <Link to={`/veiculo/${tipoAnuncio}/${id}`} className="vehicle-card">
       <div className="vc-image-wrapper">
         {imagem && (
-          <img 
-            src={imagem} 
-            alt={`${marca} ${modelo}`} 
+          <img
+            src={imagem}
+            alt={`${marca} ${modelo}`}
             className="vc-image"
             onError={(e) => { e.target.style.display = 'none'; }}
           />
         )}
         <div className="vc-badge">
-          {tipoAnuncio === 'particular' ? 'PARTICULAR' : 'LOJA'}
+          {used === 0 ? 'NOVO' : 'USADO'}
         </div>
-        
-        {tipoAnuncio === 'loja' && (
-          <div 
-             className="vc-logo-loja" 
-             onClick={(e) => {
-                e.preventDefault(); 
-                if (idLoja) window.location.href = `/loja/${idLoja}`;
-             }}
-             title="Ver página da loja"
+
+        {idLoja && (
+          <Link
+            to={`/loja/${idLoja}`}
+            className="vc-logo-loja"
+            onClick={(e) => e.stopPropagation()}
+            title="Ver página do vendedor"
           >
-             {logoLoja ? (
-                <img src={logoLoja} alt="Logo Loja" />
-             ) : (
-                <span style={{fontSize: '10px', color: '#999', fontWeight: 'bold'}}>LOJA</span>
-             )}
-          </div>
+            {logoLoja ? (
+              <img src={logoLoja} alt="Logo Vendedor" />
+            ) : (
+              <User size={24} className="text-gray-300" />
+            )}
+          </Link>
         )}
       </div>
 
       <div className="vc-content">
         <h3 className="vc-title">{marca} {modelo}</h3>
-        
+
         <div className="vc-info-row">
           <div className="vc-info-item">
             <Calendar className="vc-info-icon" /> {ano}
@@ -50,8 +48,8 @@ const VehicleCard = ({ id, imagem, marca, modelo, ano, preco, km, local, tipoAnu
         </div>
 
         <div style={{ marginTop: 'auto' }}>
-           <span className="vc-price-label">Preço Sugerido</span>
-           <div className="vc-price">R$ {preco}</div>
+          <span className="vc-price-label">Preço Sugerido</span>
+          <div className="vc-price">R$ {preco}</div>
         </div>
 
         <div className="vc-btn-wrapper">
@@ -60,7 +58,7 @@ const VehicleCard = ({ id, imagem, marca, modelo, ano, preco, km, local, tipoAnu
       </div>
 
       <div className="vc-footer">
-         <MapPin className="vc-footer-icon" /> {local}
+        <MapPin className="vc-footer-icon" /> {local}
       </div>
     </Link>
   );

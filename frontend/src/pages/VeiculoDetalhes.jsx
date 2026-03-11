@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination } from 'swiper/modules';
-import { X } from 'lucide-react';
+import { X, MapPin, Calendar, Activity, Cpu, Fuel, Palette, Hash, Car, Info } from 'lucide-react';
 
 import 'swiper/css';
 import 'swiper/css/navigation';
@@ -10,123 +10,164 @@ import 'swiper/css/pagination';
 
 import '../custom.css';
 
-// Mock de Detalhes Completo
-const MOCK_VEHICLE_DETAILS = {
-  id: 1,
-  marca: 'Chevrolet',
-  modelo: 'Onix 1.0 MT LT',
-  versao: '1.0 MPFI LT 8V FLEX 4P MANUAL',
-  ano: '2020 / 2020',
-  preco: '62.500,00',
-  km: '35000',
-  cambio: 'Manual',
-  carroceria: 'Hatchback',
-  combustivel: 'Flex',
-  cor: 'Branco',
-  placa: '***-***9',
-  local: 'Campinas - SP',
-  dataAnuncio: '05/03/2026',
-  tipoAnuncio: 'loja',
-  descricao: 'Veículo super conservado, único dono, todas as revisões na concessionária. Completo de fábrica: Ar condicionado, Direção Elétrica, Vidros e Travas Elétricas, Central Multimídia MyLink original, Android Auto/Apple CarPlay, Computador de bordo, Câmera e Sensor de Ré. Laudo cautelar 100% aprovado.',
-  imagens: ['./img/21.png', './img/22.png', './img/23.png', './img/20.png'],
-  loja: {
-    id: 15,
-    nome: 'Campinas Autos',
-    logo: 'https://dummyimage.com/200x200/e0e0e0/555&text=CA',
-    telefone: '5511999999999'
-  }
-};
-
 const VeiculoDetalhes = () => {
   const { id } = useParams();
   const [vehicle, setVehicle] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [modalFinance, setModalFinance] = useState(false);
-  const [modalZoom, setModalZoom] = useState({ open: false, src: '' });
-  
+  const [modalZoom, setModalZoom] = useState({ open: false, src: '', index: 0 });
+
   // Estados para Simulação Daycoval
   const [simFormData, setSimFormData] = useState({
-      nome: '', cpf: '', nascimento: '', telefone: '', entrada: '', parcelas: ''
+    nome: '', cpf: '', nascimento: '', telefone: '', entrada: '', parcelas: ''
   });
   const [simulationResult, setSimulationResult] = useState(null);
   const [isLoadingSim, setIsLoadingSim] = useState(false);
 
-  // Calcula parcelas nativo antigo
+  useEffect(() => {
+    const fetchVehicle = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(`http://localhost:3000/veiculos/${id}`);
+        const data = await response.json();
+        if (data.error) throw new Error(data.mensagem);
+
+        const v = data.veiculo;
+        if (v) {
+          const API_BASE = 'http://localhost:3000';
+          const fotosRaw = (v.file_path || '').split(/[;,]/);
+          v.imagens = fotosRaw
+            .map(f => {
+              const name = f?.trim();
+              if (name && name !== '' && name !== 'carro_default.png') {
+                return `${API_BASE}/uploads/veiculo/${encodeURIComponent(name)}`;
+              }
+              return null;
+            })
+            .filter(Boolean);
+
+          if (v.imagens.length === 0) v.imagens.push(`${API_BASE}/uploads/carro_default.png`);
+
+          if (v.loja && (v.loja.logo || v.logoLoja)) {
+            const logoToUse = v.loja.logo || v.logoLoja;
+            const rawLogo = logoToUse.split('/').pop();
+            v.loja.logo = rawLogo && rawLogo !== 'user_default.png' ? `${API_BASE}/uploads/empresas/${encodeURIComponent(rawLogo)}` : null;
+          }
+        }
+
+        setVehicle(v);
+      } catch (err) {
+        console.error("Erro ao buscar detalhes:", err);
+        setError("Não foi possível carregar as informações deste veículo.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchVehicle();
+    window.scrollTo(0, 0);
+  }, [id]);
+
+  if (loading) return (
+    <div className="flex flex-col items-center justify-center py-20">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#001f44] mb-4"></div>
+      <p className="text-gray-500 font-bold">Carregando detalhes do veículo...</p>
+    </div>
+  );
+
+  if (error || !vehicle) return (
+    <div className="p-10 text-center">
+      <h2 className="text-xl font-bold text-red-500 mb-2">Ops! 😕</h2>
+      <p className="text-gray-600">{error || "Veículo não encontrado."}</p>
+      <Link to="/" className="inline-block mt-4 bg-[#001f44] text-white px-6 py-2 rounded-full font-bold">Voltar para Home</Link>
+    </div>
+  );
+
+  // Helper simulação
   const calculaParcelas = (valorEntrada, valorFinanciado, percentualEntrada, stringAno, valorCarro) => {
-    // Parser no ano para inteiro
-    const anoCarro = parseInt(stringAno.split('/')[0].trim());
+    const anoCarro = parseInt(String(stringAno).split('/')[0].trim()) || 2020;
     let novoFinanciado = (valorCarro - valorEntrada) + 1800;
-  
     let pArt = 20;
     if (percentualEntrada < 30) pArt = 20;
     else if (percentualEntrada < 40) pArt = 30;
     else if (percentualEntrada < 50) pArt = 40;
     else if (percentualEntrada >= 50) pArt = 50;
-  
     const dataObj = {
       20: [0.06103, 0.0459, 0.04325, 0.04087, 0.03815],
       30: [0.06038, 0.04521, 0.04253, 0.04012, 0.03735],
       40: [0.06005, 0.04453, 0.04146, 0.03901, 0.03617],
       50: [0.05947, 0.04412, 0.04139, 0.03894, 0.03609]
-    }; // Usando por padrão Data25/24 do sistema original
-    
-    // Matriz Fallback
+    };
     const d = dataObj[pArt];
-    const format = (v) => parseFloat(v).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
-    
+    const format = (v) => parseFloat(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     return [
-       { meses: 60, vl: format(d[4] * novoFinanciado) },
-       { meses: 48, vl: format(d[3] * novoFinanciado) },
-       { meses: 42, vl: format(d[2] * novoFinanciado) },
-       { meses: 36, vl: format(d[1] * novoFinanciado) },
-       { meses: 24, vl: format(d[0] * novoFinanciado) }
+      { meses: 60, vl: format(d[4] * novoFinanciado) },
+      { meses: 48, vl: format(d[3] * novoFinanciado) },
+      { meses: 42, vl: format(d[2] * novoFinanciado) },
+      { meses: 36, vl: format(d[1] * novoFinanciado) },
+      { meses: 24, vl: format(d[0] * novoFinanciado) }
     ];
   };
 
-  const parseCurrencyStr = (curr) => parseFloat(curr.replace(/[^\d\,]/g,'').replace(',','.'));
-
-  const handleSimulate = (e) => {
-     e.preventDefault();
-     const carValue = parseCurrencyStr(vehicle.preco);
-     let entrada = parseFloat(simFormData.entrada);
-     const minEntrada = carValue * 0.2;
-     
-     if(isNaN(entrada) || entrada < minEntrada) {
-        alert("O valor de entrada não pode ser menor que 20% do veículo (R$ " + minEntrada.toLocaleString('pt-br',{minimumFractionDigits:2}) + ")");
-        entrada = minEntrada;
-     }
-     
-     const loanAmount = carValue - entrada;
-     const percentual = (entrada/carValue) * 100;
-     const parcelList = calculaParcelas(entrada, loanAmount, percentual, vehicle.ano, carValue);
-
-     setIsLoadingSim(true);
-     setSimulationResult(null);
-     
-     setTimeout(() => {
-         setSimulationResult({
-             entradaFormatada: entrada.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}),
-             financiadoFormatado: loanAmount.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}),
-             percentualFormatado: percentual.toFixed(2),
-             mesSelecionado: simFormData.parcelas,
-             parcelas: parcelList
-         });
-         setIsLoadingSim(false);
-     }, 1000); // Exibir spinner rapido pro feedback do usuario
+  const parseCurrencyStr = (curr) => {
+    if (typeof curr === 'number') return curr;
+    return parseFloat(curr.replace(/[^\d\,]/g, '').replace(',', '.'));
   };
 
-  useEffect(() => {
-    // Simulando fetch pela id da URL
-    setVehicle(MOCK_VEHICLE_DETAILS);
-    window.scrollTo(0, 0); // Sempre carregar a view no topo
-  }, [id]);
-
-  if (!vehicle) return <div className="p-10 text-center">Carregando detalhes...</div>;
+  const handleSimulate = (e) => {
+    e.preventDefault();
+    const carValue = parseCurrencyStr(vehicle.preco);
+    let entrada = parseFloat(simFormData.entrada);
+    const minEntrada = carValue * 0.2;
+    if (isNaN(entrada) || entrada < minEntrada) {
+      alert("A entrada mínima é de R$ " + minEntrada.toLocaleString('pt-br', { minimumFractionDigits: 2 }));
+      entrada = minEntrada;
+    }
+    const loanAmount = carValue - entrada;
+    const percentual = (entrada / carValue) * 100;
+    const parcelList = calculaParcelas(entrada, loanAmount, percentual, vehicle.ano, carValue);
+    setIsLoadingSim(true);
+    setSimulationResult(null);
+    setTimeout(() => {
+      setSimulationResult({
+        entradaFormatada: entrada.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+        financiadoFormatado: loanAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+        percentualFormatado: percentual.toFixed(2),
+        mesSelecionado: simFormData.parcelas,
+        parcelas: parcelList
+      });
+      setIsLoadingSim(false);
+    }, 8000);
+  };
 
   return (
-    <div className="veiculo-detalhes-page">
-      {/* 1) TOPO : CARROSSEL SWIPER FULL WIDTH */}
-      <section className="veiculo-gallery-section bg-[var(--primary-color)] w-full">
-         {/* Margin-left compensa a barra estática do layout main-wrapper */}
+    <div className="veiculo-detalhes-page bg-[#f3f4f6] min-h-screen">
+      <style>{`
+        .veiculo-swiper {
+          width: 100%;
+          display: flex;
+          justify-content: center;
+        }
+        .veiculo-swiper .swiper-wrapper {
+          display: flex;
+          align-items: center;
+        }
+        .veiculo-swiper .swiper-slide {
+          display: flex !important;
+          justify-content: center !important;
+          align-items: center !important;
+        }
+        .veiculo-swiper .swiper-button-next, 
+        .veiculo-swiper .swiper-button-prev {
+          color: #1c9be9 !important;
+        }
+        .veiculo-swiper .swiper-pagination-bullet-active {
+          background: #1c9be9 !important;
+        }
+      `}</style>
+      {/* 1) TOPO : CARROSSEL SWIPER */}
+      <section className="veiculo-gallery-section bg-[#f8f9fa] w-full">
         <div className="carousel-wrapper">
           <Swiper
             modules={[Navigation, Pagination]}
@@ -135,234 +176,204 @@ const VeiculoDetalhes = () => {
             spaceBetween={0}
             slidesPerView={1}
             className="veiculo-swiper"
+            centeredSlides={true}
+            centeredSlidesBounds={true}
             breakpoints={{
               768: { slidesPerView: 2, spaceBetween: 20 },
               1200: { slidesPerView: 3, spaceBetween: 30 }
             }}
           >
             {vehicle.imagens.map((img, idx) => (
-              <SwiperSlide key={idx} className="flex justify-center cursor-zoom-in" onClick={() => setModalZoom({ open: true, src: img })}>
-                <img src={img} alt={`Foto ${idx+1}`} className="carousel-img" />
+              <SwiperSlide key={idx} className="flex items-center justify-center cursor-zoom-in" onClick={() => setModalZoom({ open: true, src: img, index: idx })}>
+                <img src={img} alt={`Foto ${idx + 1}`} className="carousel-img" />
               </SwiperSlide>
             ))}
           </Swiper>
         </div>
       </section>
 
-      {/* 2) BLOCO BRANCO SOBREPOSTO: INFO PRINCIPAL */}
-      <section className="veiculo-info-section flex flex-col items-center">
-        <div className="info-box">
-          
-          <div className="info-header flex flex-col items-center justify-center w-full px-4 text-center">
-             {/* Logo Loja Elevada Isolada */}
-             <Link to={`/loja/${vehicle.loja.id}`} className="info-profile-logo">
-                 <img src={vehicle.loja.logo} alt={vehicle.loja.nome} />
-             </Link>
-          </div>
-          
-          <div className="info-carro-detalhe">
-             {/* Textos: Carro (Esquerda) e Preço (Direita) */}
-             <div className="info-carro-texto">
-                <h1 className="nomeCarroTitulo">{vehicle.marca} {vehicle.modelo}</h1>
-                <p className="versaoCarroTexto text-gray-500">{vehicle.versao}</p>
-             </div>
-             
-             <div className="info-carro-preco">
-                <p className="preco-valor">
-                  R$ <span className="tracking-tighter">{vehicle.preco}</span>
-                </p>
-             </div>
-          </div>
-          
-          <hr className="my-8 border-gray-200 w-11/12 mx-auto" />
-
-          {/* 3) GRUPO DE DADOS TÉCNICOS (3 COLUNAS) */}
-          <div className="container-dados">
-             <div className="grupo-dado">
-               <span className="dado-titulo">Ano</span>
-               <span className="dado-valor">{vehicle.ano}</span>
-             </div>
-             <div className="grupo-dado">
-               <span className="dado-titulo">Quilometragem</span>
-               <span className="dado-valor">{Number(vehicle.km).toLocaleString('pt-BR')} km</span>
-             </div>
-             <div className="grupo-dado">
-               <span className="dado-titulo">Câmbio</span>
-               <span className="dado-valor">{vehicle.cambio}</span>
-             </div>
-             
-             <div className="grupo-dado">
-               <span className="dado-titulo">Carroceria</span>
-               <span className="dado-valor">{vehicle.carroceria}</span>
-             </div>
-             <div className="grupo-dado">
-               <span className="dado-titulo">Combustível</span>
-               <span className="dado-valor">{vehicle.combustivel}</span>
-             </div>
-             <div className="grupo-dado">
-               <span className="dado-titulo">Cor</span>
-               <span className="dado-valor">{vehicle.cor}</span>
-             </div>
-
-             <div className="grupo-dado">
-               <span className="dado-titulo">Final da Placa</span>
-               <span className="dado-valor">{vehicle.placa}</span>
-             </div>
-             <div className="grupo-dado">
-               <span className="dado-titulo">Cidade</span>
-               <span className="dado-valor">{vehicle.local}</span>
-             </div>
-             <div className="grupo-dado">
-               <span className="dado-titulo">Tipo do Anúncio</span>
-               <span className="dado-valor uppercase">{vehicle.tipoAnuncio}</span>
-             </div>
+      {/* 2) INFO PRINCIPAL */}
+      <section className="veiculo-info-section flex flex-col items-center px-4">
+        <div className="info-box max-w-6xl w-full bg-white rounded-3xl shadow-xl -mt-20 relative z-10 px-12 md:px-28 py-16 md:py-24 mb-20">
+          <div className="info-header flex flex-col items-center mb-16">
+            <Link to={`/loja/${vehicle.loja.id}`} className="info-profile-logo w-32 h-32 rounded-full border-4 border-white shadow-lg overflow-hidden -mt-32 md:-mt-44 bg-white mb-6 transition-transform hover:scale-105 flex items-center justify-center">
+              {vehicle.loja.logo ? <img src={vehicle.loja.logo} alt={vehicle.loja.nome} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-gray-100 flex items-center justify-center font-bold text-gray-400 text-3xl">{vehicle.loja.nome?.charAt(0)}</div>}
+            </Link>
+            <h2 className="text-gray-500 font-bold uppercase tracking-widest text-sm">{vehicle.loja.nome || 'Vendedor Particular'}</h2>
           </div>
 
-          {/* 4) DESCRIÇÃO LONGA */}
-          <div className="sobre-carro flex flex-col w-full px-6 md:px-12 mt-12 mb-24 md:mb-32 text-center md:text-left">
-             <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">Sobre o Veículo</h2>
-             <div className="sobre-texto p-4 md:p-6 bg-gray-50 rounded-xl text-gray-700 text-sm md:text-base leading-relaxed border border-gray-100 h-[200px] overflow-y-auto">
-                {vehicle.descricao}
-             </div>
+          <div className="flex flex-col items-center text-center gap-4 mb-4">
+            <div>
+              <h1 className="text-3xl md:text-5xl font-extrabold text-[#001f44] mb-3">{vehicle.marca} {vehicle.modelo}</h1>
+              <p className="text-xl text-gray-400 font-medium">{vehicle.versao}</p>
+            </div>
+            <div className="mt-4 flex flex-col items-center">
+              <p className="text-gray-400 font-bold text-xs uppercase tracking-widest mb-2">Preço de Oferta</p>
+              <p className="text-5xl md:text-6xl font-black text-[#1c9be9]">
+                <span className="text-3xl mr-1 font-bold">R$</span>{vehicle.preco}
+              </p>
+            </div>
+          </div>
+
+          <hr className="my-12 border-gray-100" />
+
+          {/* 3) GRUPO DE DADOS TÉCNICOS */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-16">
+            <div className="flex flex-col items-center text-center gap-3">
+              <div className="p-4 bg-blue-50 text-[#1c9be9] rounded-2xl shadow-sm"><Calendar size={28} /></div>
+              <div className="flex flex-col"><span className="text-[11px] text-gray-400 font-black uppercase tracking-widest mb-1.5">Ano</span><span className="font-bold text-lg text-gray-800">{vehicle.ano}</span></div>
+            </div>
+            <div className="flex flex-col items-center text-center gap-3">
+              <div className="p-4 bg-blue-50 text-[#1c9be9] rounded-2xl shadow-sm"><Activity size={28} /></div>
+              <div className="flex flex-col"><span className="text-[11px] text-gray-400 font-black uppercase tracking-widest mb-1.5">Quilometragem</span><span className="font-bold text-lg text-gray-800">{Number(vehicle.km).toLocaleString('pt-BR')} km</span></div>
+            </div>
+            <div className="flex flex-col items-center text-center gap-3">
+              <div className="p-4 bg-blue-50 text-[#1c9be9] rounded-2xl shadow-sm"><Cpu size={28} /></div>
+              <div className="flex flex-col"><span className="text-[11px] text-gray-400 font-black uppercase tracking-widest mb-1.5">Câmbio</span><span className="font-bold text-lg text-gray-800">{vehicle.transmission || 'Manual'}</span></div>
+            </div>
+            <div className="flex flex-col items-center text-center gap-3">
+              <div className="p-4 bg-blue-50 text-[#1c9be9] rounded-2xl shadow-sm"><Car size={28} /></div>
+              <div className="flex flex-col"><span className="text-[11px] text-gray-400 font-black uppercase tracking-widest mb-1.5">Carroceria</span><span className="font-bold text-lg text-gray-800">{vehicle.tipo || 'Padrão'}</span></div>
+            </div>
+            <div className="flex flex-col items-center text-center gap-3">
+              <div className="p-4 bg-blue-50 text-[#1c9be9] rounded-2xl shadow-sm"><Fuel size={28} /></div>
+              <div className="flex flex-col"><span className="text-[11px] text-gray-400 font-black uppercase tracking-widest mb-1.5">Combustível</span><span className="font-bold text-lg text-gray-800">{vehicle.fuel || 'Flex'}</span></div>
+            </div>
+            <div className="flex flex-col items-center text-center gap-3">
+              <div className="p-4 bg-blue-50 text-[#1c9be9] rounded-2xl shadow-sm"><Palette size={28} /></div>
+              <div className="flex flex-col"><span className="text-[11px] text-gray-400 font-black uppercase tracking-widest mb-1.5">Cor Exterior</span><span className="font-bold text-lg text-gray-800">{vehicle.color || 'Branco'}</span></div>
+            </div>
+            <div className="flex flex-col items-center text-center gap-3">
+              <div className="p-4 bg-blue-50 text-[#1c9be9] rounded-2xl shadow-sm"><Hash size={28} /></div>
+              <div className="flex flex-col"><span className="text-[11px] text-gray-400 font-black uppercase tracking-widest mb-1.5">Placa</span><span className="font-bold text-lg text-gray-800">Final {vehicle.licensed ? 'OK' : 'Pendente'}</span></div>
+            </div>
+            <div className="flex flex-col items-center text-center gap-3">
+              <div className="p-4 bg-blue-50 text-[#1c9be9] rounded-2xl shadow-sm"><MapPin size={28} /></div>
+              <div className="flex flex-col"><span className="text-[11px] text-gray-400 font-black uppercase tracking-widest mb-1.5">Localização</span><span className="font-bold text-lg text-gray-800">{vehicle.cidade || 'São Paulo'}</span></div>
+            </div>
+          </div>
+
+          <div className="mt-20 flex flex-col items-center">
+            <h2 className="text-2xl font-black text-[#001f44] mb-8 flex items-center gap-2">
+              <Info className="text-[#1c9be9]" /> Descrição do Anúncio
+            </h2>
+            <div className="bg-gray-50 rounded-3xl p-8 md:p-12 text-gray-600 leading-relaxed border border-gray-100 whitespace-pre-wrap text-lg w-full text-center">
+              {vehicle.info || "O vendedor não incluiu uma descrição detalhada."}
+            </div>
           </div>
 
         </div>
       </section>
 
-      {/* 5) BARRA FLUTUANTE DE CONTATO INFERIOR */}
-      <div className="buttons-contact-bar fixed bottom-0 left-0 md:left-[220px] w-full md:w-[calc(100%-220px)] h-[80px] md:h-[100px] bg-white border-t border-gray-200 z-[16] flex justify-center md:justify-around items-center px-4 md:px-10 shadow-[0_-5px_15px_-5px_rgba(0,0,0,0.1)] gap-2 md:gap-4 flex-row">
-         <button onClick={() => setModalFinance(true)} className="botao-simular w-[48%] md:w-[300px] h-[50px] md:h-[60px] bg-[#085391] hover:bg-[#05325a] text-white rounded-full flex items-center justify-center transition-colors">
-            <span className="hidden md:flex bg-white rounded-full p-1 mr-3 w-[35px] h-[35px] items-center justify-center">
-               💰
-            </span>
-            <p className="font-bold text-sm md:text-base">Simular Parcelas</p>
-         </button>
-
-         <a href={`https://wa.me/${vehicle.loja.telefone}?text=Olá! Gostaria de mais detalhes sobre o veículo ${vehicle.marca} ${vehicle.modelo} anunciado no Carbike.`} target="_blank" rel="noopener noreferrer" className="botao-whats w-[48%] md:w-[300px] h-[50px] md:h-[60px] bg-[#008000] hover:bg-[#006000] text-white rounded-full flex items-center justify-center transition-colors">
-            <img src="./img/icon/whats.svg" alt="WhatsApp" className="w-[20px] md:w-[25px] mr-2" />
-            <p className="font-bold text-sm md:text-base">Entre em Contato</p>
-         </a>
+      {/* 5) CONTATO BAR */}
+      <div className="fixed bottom-0 md:left-[220px] w-full md:w-[calc(100%-220px)] bg-transparent z-[16] p-6 flex justify-center gap-4 pointer-events-none">
+        <button onClick={() => setModalFinance(true)} className="flex-1 md:max-w-xs bg-[#001f44] hover:bg-black text-white h-14 rounded-full font-bold transition-all shadow-xl flex items-center justify-center gap-2 pointer-events-auto">
+          💰 Simular Parcelas
+        </button>
+        <a href={`https://wa.me/${vehicle.loja.telefone}?text=Olá! Vi o anúncio do ${vehicle.marca} ${vehicle.modelo} no Carbike e gostaria de mais informações.`} target="_blank" rel="noopener noreferrer" className="flex-1 md:max-w-xs bg-[#25D366] hover:bg-[#1db954] text-white h-14 rounded-full font-bold transition-all shadow-xl flex items-center justify-center gap-2 pointer-events-auto">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.72.937 3.659 1.432 5.623 1.433h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" /></svg>
+          WhatsApp
+        </a>
       </div>
 
-      {/* MODAL ZOOM DE FOTO */}
       {modalZoom.open && (
-        <div className="modal-zoom-overlay bg-black/90 fixed w-full h-full top-0 left-0 z-[100] flex justify-center items-center cursor-pointer" onClick={() => setModalZoom({open: false, src: ''})}>
-          <button className="absolute top-10 right-10 text-white hover:text-gray-300">
-             <X size={40} />
+        <div className="modal-zoom-overlay fixed inset-0 bg-black/95 z-[100] flex flex-col justify-center items-center p-4">
+          <button
+            className="absolute top-6 right-6 text-white hover:text-[#1c9be9] transition-colors z-[110]"
+            onClick={() => setModalZoom({ open: false, src: '', index: 0 })}
+          >
+            <X size={48} strokeWidth={3} />
           </button>
-          <img src={modalZoom.src} className="max-w-[90vw] max-h-[85vh] object-contain shadow-2xl scale-125 transition-transform origin-center duration-300 pointer-events-none" alt="Zoomed" />
+
+          <div className="w-full h-full max-w-6xl max-h-[85vh] relative flex items-center justify-center">
+            <Swiper
+              modules={[Navigation, Pagination]}
+              navigation
+              pagination={{ type: 'fraction' }}
+              initialSlide={modalZoom.index}
+              spaceBetween={0}
+              slidesPerView={1}
+              className="zoom-swiper w-full h-full"
+            >
+              {vehicle.imagens.map((img, idx) => (
+                <SwiperSlide key={idx} className="!flex items-center !justify-center bg-transparent">
+                  <img
+                    src={img}
+                    alt={`Foto ${idx + 1}`}
+                    className="max-w-full max-h-full object-contain rounded-lg pointer-events-none select-none shadow-2xl"
+                  />
+                </SwiperSlide>
+              ))}
+            </Swiper>
+          </div>
+
+          <style>{`
+            .zoom-swiper .swiper-slide {
+                width: 100% !important;
+                margin-right: 0 !important;
+                display: flex !important;
+                justify-content: center !important;
+                align-items: center !important;
+            }
+            .zoom-swiper .swiper-button-next,
+            .zoom-swiper .swiper-button-prev {
+              color: white !important;
+              background: rgba(255,255,255,0.1);
+              width: 60px;
+              height: 60px;
+              border-radius: 50%;
+              backdrop-filter: blur(4px);
+            }
+            .zoom-swiper .swiper-button-next:after,
+            .zoom-swiper .swiper-button-prev:after {
+              font-size: 24px;
+              font-weight: bold;
+            }
+            .zoom-swiper .swiper-pagination-fraction {
+              color: white;
+              font-size: 18px;
+              font-weight: bold;
+              bottom: -40px;
+            }
+          `}</style>
         </div>
       )}
 
-      {/* MODAL DAYCOVAL FINANCEIRO REFINADO */}
       {modalFinance && (
-         <div className="simulation-modal-overlay" onClick={(e) => {
-             if (e.target.className === 'simulation-modal-overlay') setModalFinance(false);
-         }}>
-            <div className="simulation-content-box pt-10">
-              <button className="close-simulation-btn" onClick={() => setModalFinance(false)}>
-                <X size={28} />
-              </button>
-              
-              <img src="./img/bancoDaycoval.png" alt="Banco Daycoval" className="bancoSimuladorImg" />
-              <h2>Simule com Banco Daycoval</h2>
-              
-              <form className="simulation-form" onSubmit={handleSimulate}>
-                 <div className="simulation-form-group">
-                    <label>Nome Completo:</label>
-                    <input type="text" value={simFormData.nome} onChange={e=>setSimFormData({...simFormData, nome: e.target.value})} required />
-                 </div>
-                 
-                 <div className="simulation-form-group">
-                    <label>CPF:</label>
-                    <input type="text" placeholder="000.000.000-00" value={simFormData.cpf} onChange={e=>setSimFormData({...simFormData, cpf: e.target.value})} required />
-                 </div>
-                 
-                 <div className="simulation-form-group">
-                    <label>Data de Nascimento:</label>
-                    <input type="date" value={simFormData.nascimento} onChange={e=>setSimFormData({...simFormData, nascimento: e.target.value})} required />
-                 </div>
-                 
-                 <div className="simulation-form-group">
-                    <label>Telefone:</label>
-                    <input type="tel" placeholder="(XX) XXXXX-XXXX" value={simFormData.telefone} onChange={e=>setSimFormData({...simFormData, telefone: e.target.value})} required />
-                 </div>
-                 
-                 <div className="vehicle-simulation-info">
-                    <p><strong>Carro:</strong> <span>{vehicle.marca} {vehicle.modelo}</span></p>
-                    <p><strong>Valor do Carro:</strong> R$ <span>{vehicle.preco}</span></p>
-                    <p><strong>Entrada Mínima:</strong> <span>20%</span></p>
-                 </div>
-                 
-                 <div className="simulation-form-group">
-                    <label>Valor de Entrada (R$):</label>
-                    <input type="number" min="0" placeholder="Ex: 15000" value={simFormData.entrada} onChange={e=>setSimFormData({...simFormData, entrada: e.target.value})} required />
-                 </div>
-                 
-                 <div className="simulation-form-group">
-                    <label>Número de parcelas:</label>
-                    <select required value={simFormData.parcelas} onChange={e=>setSimFormData({...simFormData, parcelas: e.target.value})}>
-                        <option value="">Selecione...</option>
-                        <option value="24">24x</option>
-                        <option value="36">36x</option>
-                        <option value="42">42x</option>
-                        <option value="48">48x</option>
-                        <option value="60">60x</option>
-                    </select>
-                 </div>
-                 
-                 {!simulationResult && <button type="submit" className="btn-simular-daycoval">{isLoadingSim ? 'Calculando...' : 'Simular'}</button>}
-              </form>
+        <div className="simulation-modal-overlay" onClick={(e) => e.target.className === 'simulation-modal-overlay' && setModalFinance(false)}>
+          <div className="simulation-content-box animate-slideUp">
+            <button className="close-simulation-btn" onClick={() => setModalFinance(false)}><X size={28} /></button>
+            <img src="./img/bancoDaycoval.png" alt="Banco Daycoval" className="h-12 object-contain mx-auto mb-6" />
+            <h2 className="text-2xl font-black text-[#001f44] mb-2">Simulação Express</h2>
+            <p className="text-gray-500 mb-8">Receba uma pré-aprovação em instantes</p>
 
-              {/* CARD DE RESULTADOS DA SIMULAÇÃO (CARDS ORIGINAIS DAYCOVAL) */}
-              {simulationResult && (
-                  <div className="simulation-results-display w-full mt-6 flex flex-col items-center animate-fade-in" style={{display: 'block', opacity: 1}}>
-                      
-                      <div className="simulation-header w-full flex flex-col md:flex-row pb-6">
-                          <div className="header-item w-full md:w-1/3 bg-[#4CAF50] text-white p-3 text-center md:rounded-l-lg mb-1 md:mb-0 box-border border-b border-white">
-                              <p className="text-xs uppercase">Valor de Entrada</p>
-                              <p className="text-lg font-bold">R$ {simulationResult.entradaFormatada}</p>
-                          </div>
-                          <div className="header-item percentage-box w-full md:w-1/3 bg-[#6699CC] text-white flex items-center justify-center p-3 mb-1 md:mb-0 border-b border-white">
-                              <p className="percentage text-xl font-bold">{simulationResult.percentualFormatado}%</p>
-                          </div>
-                          <div className="header-item released-value w-full md:w-1/3 bg-[#336699] text-white p-3 text-center md:rounded-r-lg border-b border-white">
-                              <p className="text-xs uppercase">Valor Financiado</p>
-                              <p className="text-lg font-bold">R$ {simulationResult.financiadoFormatado}</p>
-                          </div>
-                      </div>
+            <form className="simulation-form" onSubmit={handleSimulate}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex flex-col text-left"><label className="text-xs font-bold text-gray-400 mb-1 ml-1 uppercase">Nome</label><input type="text" className="w-full bg-gray-50 border-0 rounded-xl p-4 focus:ring-2 focus:ring-[#1c9be9] outline-none" required /></div>
+                <div className="flex flex-col text-left"><label className="text-xs font-bold text-gray-400 mb-1 ml-1 uppercase">CPF</label><input type="text" className="w-full bg-gray-50 border-0 rounded-xl p-4 focus:ring-2 focus:ring-[#1c9be9] outline-none" required /></div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div className="flex flex-col text-left"><label className="text-xs font-bold text-gray-400 mb-1 ml-1 uppercase">Entrada (R$)</label><input type="number" className="w-full bg-gray-50 font-bold text-[#1c9be9] border-0 rounded-xl p-4 focus:ring-2 focus:ring-[#1c9be9] outline-none" placeholder="Ex: 20000" onChange={e => setSimFormData({ ...simFormData, entrada: e.target.value })} required /></div>
+                <div className="flex flex-col text-left"><label className="text-xs font-bold text-gray-400 mb-1 ml-1 uppercase">Parcelas</label><select className="w-full bg-gray-50 border-0 rounded-xl p-4 focus:ring-2 focus:ring-[#1c9be9] outline-none" onChange={e => setSimFormData({ ...simFormData, parcelas: e.target.value })} required><option value="60">60x</option><option value="48">48x</option><option value="36">36x</option></select></div>
+              </div>
+              <button type="submit" className="w-full bg-[#1c9be9] hover:bg-[#157eba] text-white font-black h-16 rounded-xl mt-8 shadow-lg shadow-blue-200 transition-all">{isLoadingSim ? 'Analisando...' : 'Fazer Simulação Agora'}</button>
+            </form>
 
-                      <p className="define-installments-text font-bold text-gray-700 mt-2 mb-4">Veja as opções de parcelas disponíveis</p>
-                      
-                      <div className="installment-options w-full">
-                           {simulationResult.parcelas.map(p => (
-                               <label key={p.meses} className={`installment-card ${String(p.meses) === String(simulationResult.mesSelecionado) ? 'selected' : ''}`}>
-                                    <input type="radio" name="plan" value={p.meses} 
-                                      checked={String(p.meses) === String(simulationResult.mesSelecionado)} 
-                                      onChange={(e) => {
-                                          setSimulationResult({...simulationResult, mesSelecionado: e.target.value});
-                                          setSimFormData({...simFormData, parcelas: e.target.value});
-                                      }} 
-                                    />
-                                    <div className="card-content">
-                                       <p>{p.meses}x de</p>
-                                       <p className="price">R$ {p.vl}</p>
-                                    </div>
-                               </label>
-                           ))}
-                      </div>
-
-                      <a href={`https://wa.me/${vehicle.loja.telefone}?text=Olá! Fiz uma simulação de financiamento no site para o veículo ${vehicle.marca} ${vehicle.modelo}. Entrada de R$ ${simulationResult.entradaFormatada} e ${simulationResult.mesSelecionado}x de R$ ${simulationResult.parcelas.find(x => String(x.meses) === String(simulationResult.mesSelecionado))?.vl}. Como prossigo?`}  
-                         target="_blank" rel="noopener noreferrer" 
-                         className="w-full text-center bg-[#25D366] text-white font-bold p-3 rounded-lg hover:bg-[#1ebf58]">
-                         Aprovar com Atendentes no WhatsApp
-                      </a>
+            {simulationResult && (
+              <div className="mt-10 pt-10 border-t border-gray-100 animate-fadeIn">
+                <div className="bg-blue-50 p-6 rounded-2xl flex justify-between items-center mb-6">
+                  <div className="text-left">
+                    <p className="text-xs font-bold text-blue-400 uppercase">Parcela Estimada</p>
+                    <p className="text-3xl font-black text-[#001f44]">R$ {simulationResult.parcelas.find(p => p.meses == simulationResult.mesSelecionado)?.vl || simulationResult.parcelas[0].vl}</p>
                   </div>
-              )}
-            </div>
-         </div>
+                  <div className="bg-white px-4 py-2 rounded-full font-bold text-[#1c9be9] shadow-sm">{simulationResult.mesSelecionado}x Fixas</div>
+                </div>
+                <a href={`https://wa.me/${vehicle.loja.telefone}`} className="block w-full bg-[#25D366] text-white font-bold p-5 rounded-xl text-lg hover:brightness-95 transition-all">Enviar para o Vendedor</a>
+              </div>
+            )}
+          </div>
+        </div>
       )}
-
     </div>
   );
 };
