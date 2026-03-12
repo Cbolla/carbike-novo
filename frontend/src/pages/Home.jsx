@@ -35,8 +35,8 @@ const Home = () => {
       setUserData(JSON.parse(userStr));
     }
 
-    // Busca veículos reais da API
-    fetch(API_URL + '/veiculos')
+    // Busca apenas veículos Premium para a Home
+    fetch(API_URL + '/veiculos?highlight=1')
       .then(r => r.json())
       .then(data => { if (!data.error) setVeiculos(data.veiculos); })
       .catch(err => console.error('Erro ao buscar veículos:', err))

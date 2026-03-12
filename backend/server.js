@@ -186,7 +186,7 @@ app.get('/admin/vehicles', isAdmin, async (req, res) => {
   try {
     const { region } = req.admin;
     let query = `
-      SELECT c.*, u.name as owner_name, u.email as owner_email, u.city as owner_city 
+      SELECT c.*, u.name as owner_name, u.email as owner_email, u.city as owner_city, u.person_type 
       FROM Carro c 
       JOIN Usuario u ON c.responsible = u.id 
       WHERE c.active IN (1, 2)
@@ -578,18 +578,28 @@ app.get('/veiculos/meus', async (req, res) => {
   }
 });
 
-// Listar Veículos (Home)
+// Listar Veículos (Público - Home e Ofertas)
 app.get('/veiculos', async (req, res) => {
   try {
-    const [rows] = await db.execute(`
+    const { highlight } = req.query; // '1' para buscar apenas destaques
+    
+    let query = `
       SELECT c.*, c.brand AS marca, c.model AS modelo, c.version AS versao, c.year AS ano, c.price AS preco, c.mileage AS km, c.sector AS tipo, 
              u.name AS nomeVendedor, u.person_type AS tipoVendedor, u.city AS cidade, u.file_path_user AS logoLoja
       FROM Carro c 
       LEFT JOIN Usuario u ON c.responsible = u.id 
       WHERE c.active = 1 
-      ORDER BY c.highlight DESC, c.creation_date DESC 
-      LIMIT 50
-    `);
+    `;
+    let params = [];
+
+    if (highlight === '1') {
+      query += ` AND c.highlight = 1`;
+    }
+
+    // Aumentado o limite para 200 para garantir que todos os veículos (Padrão e Premium) apareçam na tela de vendas
+    query += ` ORDER BY c.highlight DESC, c.creation_date DESC LIMIT 200`;
+
+    const [rows] = await db.execute(query, params);
 
     const veiculos = rows.map(v => {
       const cover = v.file_path ? v.file_path.split(',')[0] : 'carro_default.png';
@@ -602,6 +612,7 @@ app.get('/veiculos', async (req, res) => {
     });
     return res.json({ error: false, veiculos });
   } catch (error) {
+    console.error("Erro /veiculos:", error);
     return res.status(500).json({ error: true });
   }
 });

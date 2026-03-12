@@ -292,6 +292,9 @@ const AdminPanel = () => {
     const handleHighlightVehicle = async (vehicle, hlValue) => {
         const token = localStorage.getItem('carbike_admin_token');
         try {
+            // Atualização Otimista: Muda no estado local instantaneamente
+            setData(prev => prev.map(v => v.id === vehicle.id ? { ...v, highlight: hlValue } : v));
+
             await fetch(`${API_URL}/admin/vehicles/${vehicle.id}/highlight`, {
                 method: 'PUT',
                 headers: { 
@@ -300,8 +303,13 @@ const AdminPanel = () => {
                 },
                 body: JSON.stringify({ highlight: hlValue })
             });
-            fetchData();
-        } catch (e) { console.error(e); }
+
+            // Removido o fetchData() para evitar o carregamento da página toda
+        } catch (e) { 
+            console.error(e);
+            // Se der erro no servidor, volta ao valor original
+            setData(prev => prev.map(v => v.id === vehicle.id ? { ...v, highlight: vehicle.highlight } : v));
+        }
     };
 
     const handleApproveUser = async (user) => {
@@ -361,6 +369,10 @@ const AdminPanel = () => {
         
         if (activeTab === 'vehicles') {
             if (vehicleFilter === 'all') filtered = filtered.filter(v => v.active === 1);
+            if (vehicleFilter === 'premium') filtered = filtered.filter(v => v.active === 1 && v.highlight === 1);
+            if (vehicleFilter === 'padrao') filtered = filtered.filter(v => v.active === 1 && (v.highlight === 0 || !v.highlight));
+            if (vehicleFilter === 'lojas') filtered = filtered.filter(v => v.active === 1 && v.person_type === 'JURIDICA');
+            if (vehicleFilter === 'particulares') filtered = filtered.filter(v => v.active === 1 && v.person_type === 'FISICA');
             if (vehicleFilter === 'bloqueados') filtered = filtered.filter(v => v.active === 2);
         }
 
@@ -388,16 +400,18 @@ const AdminPanel = () => {
     ];
 
     return (
-        <div className="flex h-screen bg-[#f4f7f9] font-sans">
+        <div className="flex h-screen bg-[#f8fafc] font-sans">
             {/* Sidebar Superior & Conteúdo (Novo Formato) */}
-            <div className={`bg-white border-r border-[#e5e7eb] transition-all duration-300 z-50 ${isSidebarOpen ? 'w-64' : 'w-20'} flex flex-col relative`}>
+            <div className={`fixed lg:relative bg-white border-r border-gray-100 transition-all duration-300 z-[60] h-full flex flex-col ${
+                isSidebarOpen ? 'w-[280px] translate-x-0' : 'w-20 -translate-x-full lg:translate-x-0'
+            }`}>
                 
                 {/* Logo Area */}
-                <div className="py-8 flex items-center justify-center relative border-b border-transparent">
-                    <img src="./img/logo.png" alt="Carbike" className={`${isSidebarOpen ? 'w-32' : 'w-12'} transition-all object-contain`} />
+                <div className="py-6 flex items-center justify-between px-6 border-b border-gray-50">
+                    <img src="./img/logo.png" alt="Carbike" className={`${isSidebarOpen ? 'w-28' : 'w-10'} transition-all object-contain`} />
                     {isSidebarOpen && (
-                        <button onClick={() => setIsSidebarOpen(false)} className="absolute right-4 top-4 text-gray-400 hover:text-[#003A70] transition-colors p-1">
-                            <Menu size={18} />
+                        <button onClick={() => setIsSidebarOpen(false)} className="text-[#94a3b8] hover:text-[#1c64f2] transition-colors p-2 bg-gray-50 rounded-xl">
+                            <X size={18} />
                         </button>
                     )}
                 </div>
@@ -410,26 +424,37 @@ const AdminPanel = () => {
                     </div>
                 )}
 
-                <nav className="flex-1 overflow-y-auto mt-6 px-5 custom-scrollbar flex flex-col gap-3">
+                <nav className="flex-1 overflow-y-auto mt-6 px-3 custom-scrollbar flex flex-col gap-1">
                     {menuItems.map(item => (
                         <button
                             key={item.id}
-                            onClick={() => setActiveTab(item.id)}
-                            className={`w-full flex items-center gap-5 px-6 py-[18px] rounded-3xl transition-all ${
+                            onClick={() => {
+                                setActiveTab(item.id);
+                                if (window.innerWidth < 1024) setIsSidebarOpen(false);
+                            }}
+                            className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all relative group ${
                                 activeTab === item.id
-                                    ? 'bg-[#edf2f9] text-[#1a56db]'
-                                    : 'bg-transparent text-[#64748b] hover:bg-gray-50 hover:text-gray-900'
+                                    ? 'bg-[#1c64f2] text-white shadow-lg shadow-blue-500/30'
+                                    : 'bg-transparent text-[#64748b] hover:bg-gray-100 hover:text-gray-900'
                             } ${!isSidebarOpen && 'justify-center px-0'}`}
                         >
-                            <span className={`${activeTab === item.id ? 'text-[#1a56db]' : 'text-[#64748b]'} flex-shrink-0 transition-colors`}>
+                            <span className={`${activeTab === item.id ? 'text-white' : 'text-[#94a3b8] group-hover:text-[#1c64f2]'} flex-shrink-0 transition-colors`}>
                                 {item.icon}
                             </span>
                             {isSidebarOpen && (
-                                <span className={`text-[16px] text-left leading-tight whitespace-pre-line ${
-                                    activeTab === item.id ? 'font-semibold text-[#1a56db]' : 'font-medium text-[#64748b]'
+                                <span className={`text-[15px] font-bold text-left leading-tight whitespace-nowrap transition-opacity duration-300 ${
+                                    activeTab === item.id ? 'text-white' : 'text-[#64748b]'
                                 }`}>
-                                    {item.label}
+                                    {item.label.replace('\n', ' ')}
                                 </span>
+                            )}
+                            
+                            {/* Tooltip para sidebar fechada */}
+                            {!isSidebarOpen && (
+                                <div className="absolute left-full ml-4 px-3 py-2 bg-[#1e293b] text-white text-[12px] font-bold rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-[100] shadow-xl">
+                                    {item.label.replace('\n', ' ')}
+                                    <div className="absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 bg-[#1e293b] rotate-45"></div>
+                                </div>
                             )}
                         </button>
                     ))}
@@ -446,13 +471,29 @@ const AdminPanel = () => {
                 </div>
             </div>
 
+            {/* Overlay Mobile */}
+            {window.innerWidth < 1024 && isSidebarOpen && (
+                <div 
+                    className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[55] animate-fadeIn" 
+                    onClick={() => setIsSidebarOpen(false)}
+                />
+            )}
+
             {/* Main Content */}
-            <div className="flex-1 flex flex-col h-full overflow-hidden">
+            <div className={`flex-1 flex flex-col h-full overflow-hidden transition-all duration-300 ${isSidebarOpen && window.innerWidth >= 1024 ? 'md:pl-0' : ''}`}>
                 {/* Top Header */}
-                <header className="bg-white h-[70px] border-b border-gray-200 flex justify-between items-center shadow-[0_2px_10px_rgba(0,0,0,0.02)] z-40" style={{ padding: '0 40px' }}>
-                    <h1 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                        {menuItems.find(m => m.id === activeTab)?.label}
-                    </h1>
+                <header className="bg-white h-[70px] border-b border-gray-100 flex justify-between items-center shadow-sm z-40 px-6 lg:px-10">
+                    <div className="flex items-center gap-4">
+                        <button 
+                            onClick={() => setIsSidebarOpen(!isSidebarOpen)} 
+                            className="lg:hidden p-2 text-gray-500 hover:bg-gray-100 rounded-xl transition-colors"
+                        >
+                            <Menu size={20} />
+                        </button>
+                        <h1 className="text-lg lg:text-xl font-black text-[#0f172a] flex items-center gap-2">
+                            {menuItems.find(m => m.id === activeTab)?.label.replace('\n', ' ')}
+                        </h1>
+                    </div>
                     <div className="flex items-center gap-4">
                         <div className="flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50/50 text-blue-700 text-xs font-bold tracking-wide" style={{ padding: '6px 16px' }}>
                             <Shield size={14} className="text-blue-500" />
@@ -665,9 +706,13 @@ const AdminPanel = () => {
                                                 onChange={(e) => setSearchTerm(e.target.value)}
                                             />
                                         </div>
-                                        <div className="flex gap-2 w-full md:w-auto overflow-x-auto">
-                                            <button onClick={() => setVehicleFilter('all')} className={`whitespace-nowrap rounded-full text-[14px] font-bold transition-all ${vehicleFilter === 'all' ? 'bg-[#1c64f2] text-white shadow-sm shadow-blue-500/20' : 'bg-[#f1f5f9] text-gray-600 hover:bg-gray-200'}`} style={{ padding: '10px 24px' }}>Ativos na Vitrine</button>
-                                            <button onClick={() => setVehicleFilter('bloqueados')} className={`whitespace-nowrap rounded-full text-[14px] font-bold transition-all ${vehicleFilter === 'bloqueados' ? 'bg-orange-500 text-white shadow-sm shadow-orange-500/20' : 'bg-[#f1f5f9] text-gray-600 hover:bg-gray-200'}`} style={{ padding: '10px 24px' }}>Pausados</button>
+                                        <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
+                                            <button onClick={() => setVehicleFilter('all')} className={`whitespace-nowrap rounded-full text-[13px] font-bold transition-all ${vehicleFilter === 'all' ? 'bg-[#1c64f2] text-white shadow-sm' : 'bg-[#f1f5f9] text-gray-600 hover:bg-gray-200'}`} style={{ padding: '8px 20px' }}>Ativos</button>
+                                            <button onClick={() => setVehicleFilter('premium')} className={`whitespace-nowrap rounded-full text-[13px] font-bold transition-all ${vehicleFilter === 'premium' ? 'bg-amber-500 text-white shadow-sm' : 'bg-[#f1f5f9] text-gray-600 hover:bg-gray-200'}`} style={{ padding: '8px 20px' }}>✨ Premium</button>
+                                            <button onClick={() => setVehicleFilter('padrao')} className={`whitespace-nowrap rounded-full text-[13px] font-bold transition-all ${vehicleFilter === 'padrao' ? 'bg-gray-700 text-white shadow-sm' : 'bg-[#f1f5f9] text-gray-600 hover:bg-gray-200'}`} style={{ padding: '8px 20px' }}>Padrão</button>
+                                            <button onClick={() => setVehicleFilter('lojas')} className={`whitespace-nowrap rounded-full text-[13px] font-bold transition-all ${vehicleFilter === 'lojas' ? 'bg-indigo-600 text-white shadow-sm' : 'bg-[#f1f5f9] text-gray-600 hover:bg-gray-200'}`} style={{ padding: '8px 20px' }}>Lojas</button>
+                                            <button onClick={() => setVehicleFilter('particulares')} className={`whitespace-nowrap rounded-full text-[13px] font-bold transition-all ${vehicleFilter === 'particulares' ? 'bg-teal-600 text-white shadow-sm' : 'bg-[#f1f5f9] text-gray-600 hover:bg-gray-200'}`} style={{ padding: '8px 20px' }}>Particulares</button>
+                                            <button onClick={() => setVehicleFilter('bloqueados')} className={`whitespace-nowrap rounded-full text-[13px] font-bold transition-all ${vehicleFilter === 'bloqueados' ? 'bg-orange-500 text-white shadow-sm' : 'bg-[#f1f5f9] text-gray-600 hover:bg-gray-200'}`} style={{ padding: '8px 20px' }}>Pausados</button>
                                         </div>
                                     </div>
                                 )}
@@ -794,18 +839,23 @@ const AdminPanel = () => {
                                                                     </div>
                                                                 </td>
                                                                 <td style={{ padding: '16px' }}>
-                                                                    <div className={`rounded-full flex items-center w-fit outline-none transition-colors border ${item.highlight ? 'bg-[#fff7ed] text-[#ea580c] border-[#ffedd5]' : 'bg-gray-100/50 text-gray-500 border-gray-200'}`} style={{ overflow: 'hidden' }}>
-                                                                        <div className="pl-3 py-1 flex items-center justify-center">
-                                                                            <Star size={12} fill={item.highlight ? "currentColor" : "none"} /> 
-                                                                        </div>
-                                                                        <select 
-                                                                            value={item.highlight ? '1' : '0'} 
-                                                                            onChange={(e) => handleHighlightVehicle(item, parseInt(e.target.value))}
-                                                                            className="bg-transparent font-bold cursor-pointer text-[11px] uppercase tracking-widest outline-none pr-2 py-1.5 appearance-none" 
-                                                                            style={{ paddingLeft: '8px' }}>
-                                                                            <option value="0" className="text-gray-900 font-bold bg-white">Padrão</option>
-                                                                            <option value="1" className="text-gray-900 font-bold bg-white"> Premium ✨</option>
-                                                                        </select>
+                                                                    <div 
+                                                                        onClick={() => handleHighlightVehicle(item, item.highlight ? 0 : 1)}
+                                                                        className={`flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer transition-all active:scale-95 select-none w-fit border group ${
+                                                                            item.highlight 
+                                                                            ? 'bg-[#fff7ed] border-[#ffedd5] text-[#ea580c] shadow-sm' 
+                                                                            : 'bg-gray-50 border-gray-200 text-gray-500 hover:bg-white hover:border-blue-200 hover:text-blue-600'
+                                                                        }`}
+                                                                        title="Clique para alternar exposição"
+                                                                    >
+                                                                        <div className={`w-2 h-2 rounded-full transition-colors ${item.highlight ? 'bg-orange-500 animate-pulse' : 'bg-gray-300 group-hover:bg-blue-400'}`}></div>
+                                                                        <span className="text-[10px] font-black uppercase tracking-widest flex items-center gap-1">
+                                                                            {item.highlight ? (
+                                                                                <>Premium <Star size={10} fill="currentColor" /></>
+                                                                            ) : (
+                                                                                'Padrão'
+                                                                            )}
+                                                                        </span>
                                                                     </div>
                                                                 </td>
                                                                 <td className="pr-5" style={{ padding: '16px', paddingRight: '20px' }}>
