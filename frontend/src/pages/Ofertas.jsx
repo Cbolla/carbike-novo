@@ -4,7 +4,7 @@ import { Search, Filter, X } from 'lucide-react';
 import VehicleCard from '../components/VehicleCard';
 import '../custom.css';
 
-const API_URL = 'http://localhost:3000';
+import API_URL from '../api';
 
 const Ofertas = () => {
   const [searchParams] = useSearchParams();

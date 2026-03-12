@@ -40,6 +40,17 @@ body {
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+  
+  /* PWA - Sensação de App Nativo */
+  touch-action: pan-x pan-y;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none; /* Previne o bounce elástico do navegador */
+  user-select: none; /* Melhora a sensação de app, mas reabilitamos para textos */
+}
+
+/* Reativar seleção para conteúdos lidos */
+p, span, h1, h2, h3, h4, h5, h6, b, strong, input, textarea {
+  user-select: text;
 }
 
 a {
@@ -52,6 +63,16 @@ button {
   cursor: pointer;
   border: none;
   font-family: 'Inter', sans-serif;
+}
+
+/* Evitar zoom automático no iPhone ao clicar em inputs */
+input, select, textarea {
+  font-size: 16px !important;
+}
+
+/* Garantir que modais continuem com scroll se precisarem */
+.premium-modal-overlay, .pm-modal-box {
+  overscroll-behavior-y: contain;
 }
 
 /* Scrollbar Customization */

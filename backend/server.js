@@ -12,8 +12,12 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Rota para servir arquivos estáticos (IMAGENS)
+// Se a pasta 'uploads' estiver dentro da public_html, ela será servida corretamente
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 const JWT_SECRET = process.env.JWT_SECRET || 'carbike_super_secret_chave_privada_aqui';
-const BASE_URL = 'http://localhost:3000/uploads/'; // Alterado para local conforme pedido
+const BASE_URL = process.env.BASE_URL || 'https://backend.carbike.com.br/uploads/';
 
 // Helper para converter hashes do PHP ($2y$) para Formato que o Node aceita com 100% de sucesso ($2a$)
 const sanitizePhpHash = (hash) => hash.replace(/^\$2y\$/, "$2a$");
@@ -602,12 +606,12 @@ app.get('/veiculos', async (req, res) => {
     const [rows] = await db.execute(query, params);
 
     const veiculos = rows.map(v => {
-      const cover = v.file_path ? v.file_path.split(',')[0] : 'carro_default.png';
+      const cover = v.file_path ? v.file_path.split(',')[0].trim() : 'carro_default.png';
       return {
         ...v,
         idLoja: v.responsible,
-        logoLoja: v.logoLoja && v.logoLoja !== 'user_default.png' ? BASE_URL + v.logoLoja : null,
-        fotoUrl: cover !== 'carro_default.png' ? BASE_URL + cover : null
+        logoLoja: v.logoLoja && v.logoLoja !== 'user_default.png' ? BASE_URL + 'empresas/' + encodeURIComponent(v.logoLoja) : null,
+        fotoUrl: cover !== 'carro_default.png' ? BASE_URL + 'veiculo/' + encodeURIComponent(cover) : BASE_URL + 'carro_default.png'
       };
     });
     return res.json({ error: false, veiculos });
@@ -633,7 +637,10 @@ app.get('/veiculos/:id', async (req, res) => {
 
     const v = rows[0];
     const fotosRaw = v.file_path ? v.file_path.split(',') : [];
-    const fotosList = fotosRaw.map(f => f && f !== 'carro_default.png' ? BASE_URL + f : null).filter(Boolean);
+    const fotosList = fotosRaw.map(f => {
+        const name = f?.trim();
+        return name && name !== 'carro_default.png' ? BASE_URL + 'veiculo/' + encodeURIComponent(name) : null;
+    }).filter(Boolean);
     if (fotosList.length === 0) fotosList.push(BASE_URL + 'carro_default.png');
 
     const veiculo = {
@@ -644,8 +651,8 @@ app.get('/veiculos/:id', async (req, res) => {
       loja: {
         id: v.responsible,
         nome: v.nomeVendedor,
-        logo: v.logoLoja && v.logoLoja !== 'user_default.png' ? BASE_URL + v.logoLoja : null,
-        telefone: '5500000000000' // Placeholder até termos coluna de whatsapp
+        logo: v.logoLoja && v.logoLoja !== 'user_default.png' ? BASE_URL + 'empresas/' + encodeURIComponent(v.logoLoja) : null,
+        telefone: '5500000000000'
       }
     };
 

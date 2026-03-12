@@ -7,7 +7,7 @@ import {
 import axios from 'axios';
 import './login.css';
 
-const API_URL = 'http://localhost:3000';
+import API_URL from '../api';
 
 const Login = () => {
   const navigate = useNavigate();

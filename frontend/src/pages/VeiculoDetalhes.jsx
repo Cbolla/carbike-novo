@@ -9,6 +9,8 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 
 import '../custom.css';
+import API_URL from '../api';
+
 
 const VeiculoDetalhes = () => {
   const { id } = useParams();
@@ -29,13 +31,13 @@ const VeiculoDetalhes = () => {
     const fetchVehicle = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`http://localhost:3000/veiculos/${id}`);
+        const response = await fetch(`${API_URL}/veiculos/${id}`);
         const data = await response.json();
         if (data.error) throw new Error(data.mensagem);
 
         const v = data.veiculo;
         if (v) {
-          const API_BASE = 'http://localhost:3000';
+          const API_BASE = API_URL;
           const fotosRaw = (v.file_path || '').split(/[;,]/);
           v.imagens = fotosRaw
             .map(f => {

@@ -1,0 +1,50 @@
+{
+  "name": "Carbike - Sua Conquista Começa Aqui",
+  "short_name": "Carbike",
+  "description": "Anúncio de veículos novos, seminovos e usados, tanto de particulares quanto de lojas de sua região. Tabela FIPE para comparar preços.",
+  "id": "/",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "orientation": "portrait",
+  "lang": "pt-BR",
+  "categories": ["shopping", "vehicles"],
+  "icons": [
+    {
+      "src": "android/android-launchericon-512-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "android/android-launchericon-192-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "img/logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "screenshots/image00001.png",
+      "sizes": "2160x3840",
+      "type": "image/png",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "screenshots/image00002.png",
+      "sizes": "2160x3840",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ],
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  },
+  "prefer_related_applications": false
+}

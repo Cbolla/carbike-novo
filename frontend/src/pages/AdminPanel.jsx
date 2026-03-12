@@ -8,7 +8,7 @@ import {
     Store, Wallet, Settings, LayoutDashboard, Play, Mail, MapPin
 } from 'lucide-react';
 
-const API_URL = 'http://localhost:3000';
+import API_URL from '../api';
 
 const AdminPanel = () => {
     const navigate = useNavigate();

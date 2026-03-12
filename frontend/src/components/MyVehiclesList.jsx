@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, CheckCircle, Clock, RefreshCw } from 'lucide-react';
+import API_URL from '../api';
+
 
 const MyVehiclesList = ({ onOpenAddModal }) => {
   const [myVehicles, setMyVehicles] = useState([]);
@@ -9,9 +11,8 @@ const MyVehiclesList = ({ onOpenAddModal }) => {
   const fetchMyVehicles = () => {
     setLoading(true);
     setError('');
-    const baseUrl = 'http://localhost:3000';
     const token = localStorage.getItem('carbike_token');
-    fetch(`${baseUrl}/veiculos/meus`, {
+    fetch(`${API_URL}/veiculos/meus`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
       .then(r => r.json())
@@ -26,9 +27,8 @@ const MyVehiclesList = ({ onOpenAddModal }) => {
   const handleDelete = (id) => {
     if (!window.confirm('Tem certeza que deseja excluir este anúncio permanentemente?')) return;
 
-    const baseUrl = 'http://localhost:3000';
     const token = localStorage.getItem('carbike_token');
-    fetch(`${baseUrl}/veiculos/${id}`, {
+    fetch(`${API_URL}/veiculos/${id}`, {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}` }
     })
@@ -111,7 +111,7 @@ const MyVehiclesList = ({ onOpenAddModal }) => {
                         {(() => {
                           const rawPhotos = (v.file_path || '').split(/[;,]/);
                           const cover = rawPhotos[0]?.trim() || 'carro_default.png';
-                          const finalFoto = cover !== 'carro_default.png' ? `http://localhost:3000/uploads/veiculo/${encodeURIComponent(cover)}` : null;
+                          const finalFoto = cover !== 'carro_default.png' ? `${API_URL}/uploads/veiculo/${encodeURIComponent(cover)}` : null;
 
                           return finalFoto ? (
                             <img src={finalFoto} alt={v.modelo} className="w-full h-full object-cover" />

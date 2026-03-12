@@ -4,7 +4,7 @@ import { MapPin, Search } from 'lucide-react';
 import VehicleCard from '../components/VehicleCard';
 import '../custom.css';
 
-const API_URL = 'http://localhost:3000';
+import API_URL from '../api';
 
 const LojaEstoque = () => {
     const { id } = useParams();

@@ -11,7 +11,7 @@ import AddVehicleModal from '../components/AddVehicleModal';
 import { Link } from 'react-router-dom';
 import '../custom.css';
 
-const API_URL = 'http://localhost:3000';
+import API_URL from '../api';
 
 
 const Home = () => {

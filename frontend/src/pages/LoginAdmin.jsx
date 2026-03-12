@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { X, ShieldCheck, Mail, Lock, ArrowRight, Car, ArrowLeft } from 'lucide-react';
+import API_URL from '../api';
+
 
 const LoginAdmin = () => {
   const [email, setEmail] = useState('');
@@ -16,7 +18,7 @@ const LoginAdmin = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:3000/auth/admin/login', {
+      const response = await fetch(`${API_URL}/auth/admin/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })

@@ -8,7 +8,7 @@ import {
 import axios from 'axios';
 import './cadastrar.css';
 
-const API_URL = 'http://localhost:3000';
+import API_URL from '../api';
 
 const Cadastrar = () => {
   const navigate = useNavigate();

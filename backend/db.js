@@ -3,10 +3,10 @@ const mysql = require('mysql2/promise');
 
 // Configuração com base no arquivo bd_hostinger.php legado
 const pool = mysql.createPool({
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'u974737129_carbike',
+  host: process.env.DB_HOST || 'srv2073.hstgr.io',
+  user: process.env.DB_USER || 'u974737129_carbike_bck',
   password: process.env.DB_PASSWORD || 'Psw141611@@',
-  database: process.env.DB_NAME || 'u974737129_carbike',
+  database: process.env.DB_NAME || 'u974737129_carbike_bck',
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0

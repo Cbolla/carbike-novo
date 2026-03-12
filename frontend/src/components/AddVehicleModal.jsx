@@ -1,5 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { X, UploadCloud, Car, Info, Camera, CheckCircle, Trash2, Star, ArrowLeft, ArrowRight } from 'lucide-react';
+import API_URL from '../api';
+
 
 const AddVehicleModal = ({ onClose, vehicleToEdit = null }) => {
    const isEditing = !!vehicleToEdit;
@@ -90,7 +92,7 @@ const AddVehicleModal = ({ onClose, vehicleToEdit = null }) => {
 
          if (fotosExistentesRaw.length > 0) {
             const fotosExistentes = fotosExistentesRaw.map(name => ({
-               url: `http://localhost:3000/uploads/veiculo/${encodeURIComponent(name)}`,
+               url: `${API_URL}/uploads/veiculo/${encodeURIComponent(name)}`,
                isExisting: true
             }));
             setFotos(fotosExistentes);
@@ -159,8 +161,7 @@ const AddVehicleModal = ({ onClose, vehicleToEdit = null }) => {
       const token = localStorage.getItem('carbike_token');
 
       try {
-         const baseUrl = 'http://localhost:3000';
-         const url = isEditing ? `${baseUrl}/veiculos/${vehicleToEdit.id}` : `${baseUrl}/veiculos`;
+         const url = isEditing ? `${API_URL}/veiculos/${vehicleToEdit.id}` : `${API_URL}/veiculos`;
          const method = isEditing ? 'PATCH' : 'POST';
 
          // Como mudamos para selects controlados, precisamos injetar manualmente se não pegou do FormData
