@@ -165,7 +165,7 @@ app.get('/admin/summary', isAdmin, async (req, res) => {
 app.get('/admin/users', isAdmin, async (req, res) => {
   try {
     const { region } = req.admin;
-    let query = 'SELECT * FROM Usuario WHERE active = 1 AND paid = 1';
+    let query = 'SELECT * FROM Usuario WHERE paid = 1';
     let params = [];
 
     if (region !== 'Todas') {
@@ -189,7 +189,7 @@ app.get('/admin/vehicles', isAdmin, async (req, res) => {
       SELECT c.*, u.name as owner_name, u.email as owner_email, u.city as owner_city 
       FROM Carro c 
       JOIN Usuario u ON c.responsible = u.id 
-      WHERE c.active = 1
+      WHERE c.active IN (1, 2)
     `;
     let params = [];
 
@@ -254,10 +254,115 @@ app.post('/admin/users/:id/approve', isAdmin, async (req, res) => {
   }
 });
 
+app.post('/admin/users/:id/pause', isAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    await db.execute('UPDATE Usuario SET active = 0 WHERE id = ?', [id]);
+    res.json({ error: false, mensagem: 'Acesso pausado com sucesso!' });
+  } catch (error) {
+    res.status(500).json({ error: true });
+  }
+});
+
+app.post('/admin/users/:id/unpause', isAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    await db.execute('UPDATE Usuario SET active = 1 WHERE id = ?', [id]);
+    res.json({ error: false, mensagem: 'Acesso reativado com sucesso!' });
+  } catch (error) {
+    res.status(500).json({ error: true });
+  }
+});
+
+app.put('/admin/users/:id', isAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { 
+        name, email, phone_number, phone_number2, 
+        cep, state, city, district, street, number, complement 
+    } = req.body;
+    
+    await db.execute(
+      `UPDATE Usuario SET 
+            name = ?, email = ?, phone_number = ?, phone_number2 = ?,
+            cep = ?, state = ?, city = ?, district = ?, street = ?, number = ?, complement = ?
+       WHERE id = ?`,
+      [
+        name, email, phone_number, phone_number2,
+        cep, state, city, district, street, number, complement,
+        id
+      ]
+    );
+    res.json({ error: false, mensagem: 'Dados atualizados com sucesso!' });
+  } catch (error) {
+    res.status(500).json({ error: true });
+  }
+});
+
+app.delete('/admin/users/:id', isAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    // Opcional: deletar carros vinculados também? Como o DB está estruturado pode dar restrição de chave (FK constraint), então dependendo removemos só o usuário.
+    await db.execute('DELETE FROM Usuario WHERE id = ?', [id]);
+    res.json({ error: false, mensagem: 'Parceiro excluído excluída!' });
+  } catch (error) {
+    // Se der erro por chave estrangeira (FK), vamos apenas inativar
+    if (error.code === 'ER_ROW_IS_REFERENCED_2') {
+      await db.execute('UPDATE Usuario SET active = 0, paid = 0 WHERE id = ?', [id]);
+      return res.json({ error: false, mensagem: 'O parceiro possuía veículos, então foi apenas desativado.' });
+    }
+    res.status(500).json({ error: true });
+  }
+});
+
 app.post('/admin/vehicles/:id/approve', isAdmin, async (req, res) => {
   try {
     await db.execute('UPDATE Carro SET active = 1 WHERE id = ?', [req.params.id]);
     res.json({ error: false, mensagem: 'Veículo ativado!' });
+  } catch (error) {
+    res.status(500).json({ error: true });
+  }
+});
+
+app.post('/admin/vehicles/:id/pause', isAdmin, async (req, res) => {
+  try {
+    await db.execute('UPDATE Carro SET active = 2 WHERE id = ?', [req.params.id]);
+    res.json({ error: false, mensagem: 'Veículo pausado!' });
+  } catch (error) {
+    res.status(500).json({ error: true });
+  }
+});
+
+app.post('/admin/vehicles/:id/unpause', isAdmin, async (req, res) => {
+  try {
+    await db.execute('UPDATE Carro SET active = 1 WHERE id = ?', [req.params.id]);
+    res.json({ error: false, mensagem: 'Veículo reativado!' });
+  } catch (error) {
+    res.status(500).json({ error: true });
+  }
+});
+
+app.delete('/admin/vehicles/:id', isAdmin, async (req, res) => {
+  try {
+    await db.execute('DELETE FROM Carro WHERE id = ?', [req.params.id]);
+    // Lógica futura: Deletar imagens associadas do servidor de arquivos.
+    res.json({ error: false, mensagem: 'Veículo apagado definitivamente.' });
+  } catch (error) {
+    res.status(500).json({ error: true });
+  }
+});
+
+app.put('/admin/vehicles/:id', isAdmin, async (req, res) => {
+  try {
+    const { brand, model, year, price, mileage, fuel, color, info } = req.body;
+    await db.execute(
+      `UPDATE Carro SET 
+            brand = ?, model = ?, year = ?, price = ?, 
+            mileage = ?, fuel = ?, color = ?, info = ? 
+       WHERE id = ?`,
+      [brand, model, year, price, mileage, fuel, color, info, req.params.id]
+    );
+    res.json({ error: false, mensagem: 'Veículo editado com sucesso!' });
   } catch (error) {
     res.status(500).json({ error: true });
   }

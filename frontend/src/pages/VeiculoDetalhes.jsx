@@ -193,8 +193,8 @@ const VeiculoDetalhes = () => {
       </section>
 
       {/* 2) INFO PRINCIPAL */}
-      <section className="veiculo-info-section flex flex-col items-center px-4">
-        <div className="info-box max-w-6xl w-full bg-white rounded-3xl shadow-xl -mt-20 relative z-10 px-12 md:px-28 py-16 md:py-24 mb-20">
+      <section className="veiculo-info-section flex flex-col items-center px-6 md:px-14">
+        <div className="info-box max-w-5xl w-full bg-white rounded-3xl shadow-xl -mt-20 relative z-10 px-12 md:px-28 py-16 md:py-24 mb-20">
           <div className="info-header flex flex-col items-center mb-16">
             <Link to={`/loja/${vehicle.loja.id}`} className="info-profile-logo w-32 h-32 rounded-full border-4 border-white shadow-lg overflow-hidden -mt-32 md:-mt-44 bg-white mb-6 transition-transform hover:scale-105 flex items-center justify-center">
               {vehicle.loja.logo ? <img src={vehicle.loja.logo} alt={vehicle.loja.nome} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-gray-100 flex items-center justify-center font-bold text-gray-400 text-3xl">{vehicle.loja.nome?.charAt(0)}</div>}
@@ -277,7 +277,7 @@ const VeiculoDetalhes = () => {
       </div>
 
       {modalZoom.open && (
-        <div className="modal-zoom-overlay fixed inset-0 bg-black/95 z-[100] flex flex-col justify-center items-center p-4">
+        <div className="modal-zoom-overlay fixed inset-0 bg-black/95 z-[100] flex flex-col justify-center items-center p-6 md:p-14">
           <button
             className="absolute top-6 right-6 text-white hover:text-[#1c9be9] transition-colors z-[110]"
             onClick={() => setModalZoom({ open: false, src: '', index: 0 })}

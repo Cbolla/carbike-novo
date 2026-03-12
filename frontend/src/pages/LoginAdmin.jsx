@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { X, ShieldCheck } from 'lucide-react';
+import { X, ShieldCheck, Mail, Lock, ArrowRight, Car, ArrowLeft } from 'lucide-react';
 
 const LoginAdmin = () => {
   const [email, setEmail] = useState('');
@@ -41,67 +41,125 @@ const LoginAdmin = () => {
   };
 
   return (
-    <div className="login-admin-page w-full h-screen overflow-hidden flex flex-col relative bg-gradient-to-br from-gray-900 to-black text-white">
+    <div className="relative flex justify-center items-center min-h-screen w-full bg-[#0a0f1d] overflow-hidden font-sans">
+      {/* Dynamic Background Elements */}
+      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-600/30 rounded-full blur-[120px] pointer-events-none animate-pulse"></div>
+      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-purple-600/20 rounded-full blur-[120px] pointer-events-none"></div>
+      
       {/* Logos & Fechar */}
-      <img src="/img/logo.png" alt="Carbike Logo" className="absolute top-5 left-1/2 -translate-x-1/2 w-[100px] z-20 cursor-pointer drop-shadow-lg" onClick={() => navigate('/')} />
-      <button onClick={() => navigate('/')} className="absolute top-5 right-8 z-20 text-gray-400 hover:text-red-500 transition-colors">
-        <X size={35} />
+      <div className="absolute top-6 left-6 z-20 cursor-pointer transition-transform hover:scale-105" onClick={() => navigate('/')}>
+        <div className="flex items-center gap-2">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-blue-500/30">
+            <Car size={24} className="text-white" />
+          </div>
+          <span className="text-white font-extrabold tracking-[0.2em] text-2xl drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">CARBIKE</span>
+        </div>
+      </div>
+      <button 
+        onClick={() => navigate('/')} 
+        className="absolute top-6 right-6 z-20 p-2 rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all duration-300 backdrop-blur-sm group"
+      >
+        <X size={24} className="group-hover:rotate-90 transition-transform duration-300" />
       </button>
 
-      {/* Main Split Layout */}
-      <div className="flex w-full h-full flex-col md:flex-row-reverse" style={{ height: 'calc(100vh - env(safe-area-inset-bottom))' }}>
+      {/* Main Container */}
+      <div className="z-10 w-full max-w-[480px] px-6">
+        <form 
+          onSubmit={handleLoginSubmit} 
+          className="relative flex flex-col items-center w-full bg-white/5 p-10 sm:p-12 rounded-[2rem] backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)]"
+        >
+          {/* Header */}
+          <div className="relative mb-8 text-center flex flex-col items-center">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-600 to-cyan-400 flex items-center justify-center p-0.5 mb-6 shadow-[0_0_30px_rgba(37,99,235,0.5)]">
+              <div className="w-full h-full bg-[#0a0f1d]/50 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+                <ShieldCheck size={32} className="text-white drop-shadow-md" />
+              </div>
+            </div>
+            <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400 mb-2">
+              Acesso Restrito
+            </h1>
+            <p className="text-sm text-gray-400">
+              Painel de Administração Carbike
+            </p>
+          </div>
 
-        {/* Right Side - Form */}
-        <div className="w-full md:w-1/2 h-full flex justify-center items-center mt-20 md:mt-0 px-6 z-10">
-          <form onSubmit={handleLoginSubmit} className="flex flex-col items-center w-full max-w-[450px] bg-white/10 p-10 rounded-2xl backdrop-blur-md border border-white/20 shadow-2xl">
-
-            <div className="bg-[#1c9be9] p-4 rounded-full mb-6">
-              <ShieldCheck size={40} className="text-white" />
+          {/* Form Fields */}
+          <div className="w-full space-y-6">
+            <div className="flex flex-col relative">
+              <label htmlFor="emailAdmin" className="text-sm font-semibold text-gray-300 ml-2 mb-2 flex items-center gap-2">
+                <Mail size={16} className="text-blue-400" />
+                Email Corporativo
+              </label>
+              <div className="relative">
+                <input
+                  type="email"
+                  id="emailAdmin"
+                  required
+                  className="w-full h-14 bg-white/5 border border-white/10 rounded-xl px-4 text-white placeholder-gray-500 focus:bg-white/10 focus:border-blue-500/80 focus:outline-none focus:ring-4 focus:ring-blue-500/20 transition-all font-medium"
+                  placeholder="admin@carbike.com"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                />
+              </div>
             </div>
 
-            <h1 className="text-3xl text-white font-bold mb-8 tracking-wide">Acesso Restrito</h1>
-
-            <div className="flex flex-col w-full mb-4 relative">
-              <label className="text-sm text-gray-300 font-bold mb-1 ml-4">Email Corporativo</label>
-              <input
-                type="email"
-                required
-                className="w-full h-[50px] rounded-full px-5 bg-white/5 border border-gray-500 text-white placeholder-gray-400 focus:outline-none focus:border-[#1c9be9] transition-colors"
-                placeholder="admin@carbike.com"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-              />
+            <div className="flex flex-col relative">
+              <label htmlFor="passwordAdmin" className="text-sm font-semibold text-gray-300 ml-2 mb-2 flex items-center gap-2">
+                <Lock size={16} className="text-blue-400" />
+                Senha
+              </label>
+              <div className="relative">
+                <input
+                  type="password"
+                  id="passwordAdmin"
+                  required
+                  className="w-full h-14 bg-white/5 border border-white/10 rounded-xl px-4 text-white placeholder-gray-500 focus:bg-white/10 focus:border-blue-500/80 focus:outline-none focus:ring-4 focus:ring-blue-500/20 transition-all font-medium tracking-widest"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                />
+              </div>
             </div>
+          </div>
 
-            <div className="flex flex-col w-full mb-8 relative">
-              <label className="text-sm text-gray-300 font-bold mb-1 ml-4">Senha</label>
-              <input
-                type="password"
-                required
-                className="w-full h-[50px] rounded-full px-5 bg-white/5 border border-gray-500 text-white placeholder-gray-400 focus:outline-none focus:border-[#1c9be9] transition-colors"
-                placeholder="••••••••"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-              />
+          {/* Submit Button */}
+          <button 
+            type="submit" 
+            disabled={isLoading} 
+            className="w-full h-14 mt-8 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-bold text-lg transition-all duration-300 shadow-[0_0_20px_rgba(37,99,235,0.4)] hover:shadow-[0_0_30px_rgba(37,99,235,0.6)] flex justify-center items-center group disabled:opacity-70 disabled:cursor-not-allowed"
+          >
+            {isLoading ? (
+              <span className="flex items-center gap-3">
+                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                Verificando...
+              </span>
+            ) : (
+              <span className="flex items-center gap-2">
+                Autenticar Painel
+                <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+              </span>
+            )}
+          </button>
+
+          {/* Error Message */}
+          {errorMsg && (
+            <div className="w-full mt-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-center animate-pulse">
+              <p className="text-red-400 text-sm font-medium">{errorMsg}</p>
             </div>
+          )}
 
-            <button type="submit" disabled={isLoading} className="w-full h-[50px] rounded-full bg-[#1c9be9] hover:bg-[#157eba] text-white font-bold text-lg transition-colors shadow-lg flex justify-center items-center">
-              {isLoading ? 'Verificando Hash...' : 'Autenticar Painel'}
-            </button>
-
-            {errorMsg && <p className="text-red-400 text-sm mt-4 font-bold text-center bg-black/40 p-2 rounded-lg">{errorMsg}</p>}
-
-            <Link to="/login" className="mt-6 text-sm text-gray-400 hover:text-white transition-colors cursor-pointer border-b border-transparent hover:border-white">
+          {/* Footer Link */}
+          <div className="mt-8 pt-6 border-t border-white/10 w-full flex justify-center">
+            <Link 
+              to="/login" 
+              className="flex items-center gap-2 group px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-transparent hover:border-white/10 text-sm font-semibold text-blue-300 hover:text-white transition-all duration-300"
+            >
+              <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
               Voltar para Login de Lojistas
             </Link>
-          </form>
-        </div>
+          </div>
 
-        {/* Left Side - Background Overlay */}
-        <div className="hidden md:flex w-1/2 h-full justify-center items-center relative overflow-hidden">
-          <div className="absolute inset-0 bg-blue-900/20 mix-blend-overlay"></div>
-        </div>
-
+        </form>
       </div>
     </div>
   );

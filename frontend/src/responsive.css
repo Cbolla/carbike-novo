@@ -84,11 +84,72 @@
 
   .main-wrapper {
     margin-left: 0;
-    padding: 90px 20px 30px 20px; /* Padding top compensa o Header Fixo */
+    width: 100%;
+    padding: 90px 15px 30px 15px; /* Ajustado para ser mais harmônico */
   }
 
   .vehicle-card {
-    min-width: 240px; /* Garante tamanho ok no drag do swiper mobile */
+    width: 100% !important;
+    max-width: none !important;
+    min-width: unset !important;
+    margin: 0 !important;
+    min-height: auto;
+  }
+
+  /* Ajustes para quando houverem 2 cards por linha (compacto) */
+  @media screen and (max-width: 480px) {
+    .vehicle-card {
+      min-height: 310px; /* Reduz altura total ainda mais para caber 2 */
+    }
+    .vc-image-wrapper {
+      height: 100px; /* Reduz altura da imagem */
+    }
+    .vc-title {
+      font-size: 11px;
+      line-height: 1.2;
+      height: 28px;
+    }
+    .vc-price {
+      font-size: 14px;
+      margin-bottom: 5px;
+    }
+    .vc-content {
+      padding: 8px;
+    }
+    .vc-info-row {
+      gap: 5px;
+      margin-bottom: 5px;
+      flex-wrap: wrap;
+    }
+    .vc-info-item {
+      font-size: 9px;
+    }
+    .vc-logo-loja {
+      width: 30px;
+      height: 30px;
+      left: 8px;
+      bottom: -12px;
+    }
+    .vc-btn {
+      font-size: 10px;
+      padding: 5px 0;
+    }
+    .vc-footer {
+      font-size: 9px;
+      padding: 5px 8px;
+    }
+    .vc-badge {
+      font-size: 7px;
+      padding: 1px 4px;
+    }
+    .vc-price-label {
+      font-size: 9px;
+    }
+  }
+
+  .page-title {
+    margin-top: 25px;
+    margin-bottom: 20px;
   }
 
   .ad-mobile-full {
@@ -225,11 +286,14 @@
 @media screen and (max-width: 480px) {
   .page-title {
     font-size: 20px;
+    margin-top: 20px;
+    margin-bottom: 15px;
   }
   
   .alert-banner {
     font-size: 11px;
     line-height: 1.4;
+    margin-bottom: 20px;
   }
   
   .custom-select {

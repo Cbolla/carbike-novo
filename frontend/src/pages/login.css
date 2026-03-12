@@ -405,12 +405,12 @@
 
 @media (max-width: 480px) {
   .register-form-area {
-    padding: 10px; /* Reduzido de 20 para 10 mas mantendo o respiro */
+    padding: 10px;
   }
 
   .form-wrapper {
-    padding: 30px 15px; /* Padding interno um pouco menor no mobile */
-    margin: 5px; /* Garante que nunca encoste na borda absoluta */
+    padding: 30px 15px;
+    margin: 5px;
   }
 }
 

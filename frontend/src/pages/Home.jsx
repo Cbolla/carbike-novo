@@ -92,29 +92,40 @@ const Home = () => {
 
       {/* Painel de Boas Vindas se Logado */}
       {isLogged && userData && (
-        <div className="bg-gradient-to-r from-[#001f44] to-[#144275] rounded-2xl mb-8 text-white shadow-xl relative overflow-hidden fade-in" style={{ padding: '24px' }}>
-          <div className="relative z-10 flex justify-between items-center sm:flex-row flex-col gap-4 text-center sm:text-left">
-            <div>
-              <h2 className="text-2xl font-bold">Olá, {userData.type === 'JURIDICA' ? 'Lojista Parceiro' : 'Usuário VIP'} 👋</h2>
-              <p className="text-blue-100 opacity-90 mt-1">Bem-vindo à Carbike! Acesse seu painel para gerenciar os anúncios.</p>
+        <div className="bg-gradient-to-r from-[#001f44] to-[#144275] rounded-[3rem] mb-12 text-white shadow-2xl relative overflow-hidden fade-in px-8 py-12 sm:p-14 border border-white/10">
+          <div className="relative z-10 flex flex-col items-center text-center">
+            <div className="mb-10">
+              <h2 className="text-3xl sm:text-5xl font-black tracking-tight mb-4">
+                Olá, {userData.name || userData.nome || userData.user?.nome || userData.user?.name || 'Parceiro'} 👋
+              </h2>
+              <p className="text-blue-100/70 text-lg sm:text-2xl max-w-2xl leading-relaxed mx-auto">
+                Seu painel administrativo está pronto. Gerencie seus anúncios e acompanhe o desempenho em tempo real.
+              </p>
             </div>
-            <div className="flex gap-3">
-              <button onClick={() => setShowDashboard(true)} className="flex items-center gap-2 bg-[#1c9be9] hover:bg-[#157eba] px-5 py-2.5 rounded-full font-bold text-sm transition-colors shadow-md text-white">
+            
+            <div className="flex flex-col gap-6 w-full items-center">
+              <button 
+                onClick={() => setShowDashboard(true)} 
+                className="w-fit min-w-[220px] flex items-center justify-center gap-3 bg-[#1c9be9] hover:bg-[#157eba] px-12 py-6 rounded-full font-black text-[17px] transition-all shadow-xl shadow-blue-500/20 active:scale-95 text-white"
+              >
                 Meu Painel
               </button>
-              <button onClick={handleLogout} className="flex items-center gap-2 bg-white/10 hover:bg-red-500/80 px-4 py-2.5 rounded-full font-bold text-sm transition-colors border border-white/20 text-white">
-                <LogOut size={16} /> Sair
+              <button 
+                onClick={handleLogout} 
+                className="w-fit min-w-[180px] flex items-center justify-center gap-3 bg-white/5 hover:bg-red-500/20 px-10 py-5 rounded-full font-bold text-[16px] transition-all border border-white/10 active:scale-95 text-white"
+              >
+                <LogOut size={18} /> Sair
               </button>
             </div>
           </div>
-          <div className="absolute top-0 right-0 opacity-10 blur-xl w-64 h-64 bg-white rounded-full -translate-y-1/2 translate-x-1/2"></div>
+          <div className="absolute top-0 right-0 opacity-10 blur-3xl w-96 h-96 bg-white rounded-full -translate-y-1/2 translate-x-1/2"></div>
         </div>
       )}
 
       {/* Painel de Gerenciamento */}
       {isLogged && showDashboard && (
-        <div className="fixed inset-0 z-[60] bg-[#001f44]/80 backdrop-blur-sm flex items-center justify-center p-4 fadeIn">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[95vh] flex flex-col overflow-hidden slideUp">
+        <div className="fixed inset-0 z-[60] bg-[#001f44]/80 backdrop-blur-sm flex items-center justify-center p-6 md:p-14 fadeIn">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[95vh] flex flex-col overflow-hidden slideUp">
             <div className="flex justify-between items-center border-b border-gray-100 bg-gray-50/50" style={{ padding: '16px 24px' }}>
               <h2 className="text-xl font-bold text-[#001f44]">Painel de Gerenciamento</h2>
               <button onClick={() => setShowDashboard(false)} className="text-gray-400 hover:text-red-500 hover:bg-red-50 p-2 rounded-full transition-colors">
@@ -165,13 +176,20 @@ const Home = () => {
         <div className="swiper-section">
           <Swiper
             modules={[Navigation, Pagination, Autoplay]}
-            spaceBetween={15}
-            slidesPerView="auto"
+            spaceBetween={10}
+            slidesPerView={2.1}
+            breakpoints={{
+              320: { slidesPerView: 2.1, spaceBetween: 10 },
+              480: { slidesPerView: 1.2, spaceBetween: 15 },
+              768: { slidesPerView: 2.2, spaceBetween: 15 },
+              1024: { slidesPerView: 3.2, spaceBetween: 20 },
+              1280: { slidesPerView: 4, spaceBetween: 20 }
+            }}
             autoplay={{ delay: 3500, disableOnInteraction: false }}
             pagination={{ clickable: true, dynamicBullets: true }}
           >
             {linha1.map(v => (
-              <SwiperSlide key={v.id} style={{ width: 'auto' }}>
+              <SwiperSlide key={v.id}>
                 <VehicleCard {...mapVeiculo(v)} />
               </SwiperSlide>
             ))}
@@ -184,13 +202,20 @@ const Home = () => {
         <div className="swiper-section" style={{ marginTop: '15px' }}>
           <Swiper
             modules={[Navigation, Pagination, Autoplay]}
-            spaceBetween={15}
-            slidesPerView="auto"
+            spaceBetween={10}
+            slidesPerView={2.1}
+            breakpoints={{
+              320: { slidesPerView: 2.1, spaceBetween: 10 },
+              480: { slidesPerView: 1.2, spaceBetween: 15 },
+              768: { slidesPerView: 2.2, spaceBetween: 15 },
+              1024: { slidesPerView: 3.2, spaceBetween: 20 },
+              1280: { slidesPerView: 4, spaceBetween: 20 }
+            }}
             autoplay={{ delay: 4500, disableOnInteraction: false }}
             pagination={{ clickable: true, dynamicBullets: true }}
           >
             {linha2.map(v => (
-              <SwiperSlide key={v.id} style={{ width: 'auto' }}>
+              <SwiperSlide key={v.id}>
                 <VehicleCard {...mapVeiculo(v)} />
               </SwiperSlide>
             ))}
@@ -235,7 +260,7 @@ const Home = () => {
           </div>
           <div className="flex gap-x-6 gap-y-10 flex-wrap justify-center pb-6">
             {/* Botão Particulares */}
-            <Link to="/ofertas" className="flex-shrink-0 flex flex-col items-center gap-2 cursor-pointer group no-underline">
+            <Link to="/ofertas?vendedor=FISICA" className="flex-shrink-0 flex flex-col items-center gap-2 cursor-pointer group no-underline">
               <div className="w-[80px] h-[80px] rounded-full border border-[var(--cinza-texto)] flex items-center justify-center bg-[#f0f0f0] shadow-sm group-hover:shadow-md group-hover:border-[var(--azul-carbike)] transition-all overflow-hidden p-2 text-center">
                 <span className="text-[11px] text-[var(--azul-carbike)] font-bold">Particulares</span>
               </div>

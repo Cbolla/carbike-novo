@@ -285,7 +285,7 @@ const Cadastrar = () => {
                 </div>
 
                 <div className="input-row mt-6">
-                  <div className="input-group">
+                  <div className="input-group col-span-2">
                     <label>E-mail</label>
                     <div className="input-with-icon">
                       <Mail size={18} />

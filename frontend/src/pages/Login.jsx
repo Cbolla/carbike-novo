@@ -1,53 +1,46 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { X } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { 
+  Mail, Lock, ChevronRight, ChevronLeft, 
+  ShieldCheck, Car, Phone, AlertTriangle, X 
+} from 'lucide-react';
+import axios from 'axios';
+import './login.css';
+
+const API_URL = 'http://localhost:3000';
 
 const Login = () => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [activeModal, setActiveModal] = useState(null); // 'esqueceu' | 'mudar' | null
-  const [modalForm, setModalForm] = useState({ email: '', senhaAtual: '', senhaNova: '', senhaRepetir: '' });
-
-  const navigate = useNavigate();
-
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [activeModal, setActiveModal] = useState(null); // 'esqueceu'
+  const [modalForm, setModalForm] = useState({ email: '' });
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg('');
     setIsLoading(true);
 
-    // URL da API — localhost pra testes locais, URL real para produção
-    const API_URL = '';
-
     try {
-      console.log('[Carbike] Tentando login em:', API_URL + '/auth/login');
-
-      const response = await fetch(API_URL + '/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+      const response = await axios.post(`${API_URL}/auth/login`, {
+        email,
+        password
       });
 
-      console.log('[Carbike] Resposta HTTP status:', response.status);
-      const data = await response.json();
-      console.log('[Carbike] Dados recebidos:', data);
+      const data = response.data;
 
       if (data.error) {
         setErrorMsg(data.mensagem);
       } else {
-        // Salva o Token e navega o usuário
         localStorage.setItem('carbike_token', data.token);
         localStorage.setItem('carbike_user', JSON.stringify(data.user));
-
-        navigate('/'); // Volta para a tela inicial (Dashboard do Site)
+        navigate('/');
       }
     } catch (err) {
-      console.error('[Carbike] ERRO COMPLETO:', err);
-      console.error('[Carbike] Tipo do erro:', err.name);
-      console.error('[Carbike] Mensagem:', err.message);
-      setErrorMsg('Erro de rede: O servidor API possivelmente está offline.');
+      console.error('[Carbike] Erro no login:', err);
+      setErrorMsg(err.response?.data?.mensagem || 'Erro ao conectar com o servidor.');
     } finally {
       setIsLoading(false);
     }
@@ -59,141 +52,139 @@ const Login = () => {
     setActiveModal(null);
   };
 
-  const submitMudarSenha = (e) => {
-    e.preventDefault();
-    if (modalForm.senhaNova !== modalForm.senhaRepetir) {
-      alert("A nova senha não confere com a repetição.");
-      return;
-    }
-    alert(`Alteração de senha processada para: ${modalForm.email}`);
-    setActiveModal(null);
-  };
-
   return (
-    <div className="login-page-container w-full h-screen overflow-hidden flex flex-col relative bg-white">
-      {/* Logos & Fechar */}
-      <img src="./img/logo.png" alt="Carbike Logo" className="absolute top-5 left-1/2 -translate-x-1/2 w-[100px] z-20 cursor-pointer" onClick={() => navigate('/')} />
-      <button onClick={() => navigate('/')} className="absolute top-5 right-8 z-20 text-gray-500 hover:text-red-500 transition-colors">
-        <X size={35} />
-      </button>
+    <div className="register-container">
+      {/* Esquerda: Banner / Info (Idêntico ao cadastro) */}
+      <div className="register-banner">
+        <div className="banner-content">
+          <img src="./logo.png" alt="Carbike" className="banner-logo" />
+          <h1>Sua próxima conquista começa aqui.</h1>
+          <p>Acesse a maior plataforma de veículos da região e gerencie seus anúncios.</p>
 
-      {/* Main Split Layout */}
-      <div className="flex w-full h-full flex-col md:flex-row-reverse" style={{ height: 'calc(100vh - env(safe-area-inset-bottom))' }}>
-
-        {/* Right Side - Form */}
-        <div className="w-full md:w-1/2 h-full flex justify-center items-center mt-20 md:mt-0 px-6">
-          <form onSubmit={handleLoginSubmit} className="flex flex-col items-center w-full max-w-[450px]">
-            <h1 className="text-4xl text-[var(--h1-color)] font-bold mb-8">Login</h1>
-
-            <div className="flex flex-col w-full px-5 mb-4">
-              <label className="font-bold mb-2">Email*</label>
-              <input
-                type="email"
-                required
-                className="w-full h-[50px] rounded-full px-5 border border-black focus:outline-none focus:border-[var(--h1-color)] transition-colors"
-                placeholder="Insira seu email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-              />
+          <div className="benefits-list">
+            <div className="benefit-item">
+              <ShieldCheck size={20} />
+              <span>Acesso 100% Seguro</span>
             </div>
-
-            <div className="flex flex-col w-full px-5 mb-2">
-              <label className="font-bold mb-2">Senha*</label>
-              <input
-                type="password"
-                required
-                className="w-full h-[50px] rounded-full px-5 border border-black focus:outline-none focus:border-[var(--h1-color)] transition-colors"
-                placeholder="Insira sua senha"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-              />
+            <div className="benefit-item">
+              <Car size={20} />
+              <span>Gerencie seus veículos em um só lugar</span>
             </div>
-
-            {/* Lado a Lado Links */}
-            <div className="flex justify-between w-[90%] md:w-[80%] mt-2 text-[var(--h1-color)] text-sm cursor-pointer font-medium">
-              <span className="hover:underline" onClick={() => setActiveModal('esqueceu')}>Esqueci a senha</span>
-              <span className="hover:underline" onClick={() => setActiveModal('mudar')}>Alterar a senha</span>
+            <div className="benefit-item">
+              <Phone size={20} />
+              <span>Suporte especializado Carbike</span>
             </div>
-
-            <button type="submit" disabled={isLoading} className="mt-8 w-[200px] h-[45px] rounded-full bg-[var(--h1-color)] hover:bg-[#001f44] text-white border border-black font-bold text-lg transition-colors flex justify-center items-center">
-              {isLoading ? 'Autenticando...' : 'Login'}
-            </button>
-
-            {errorMsg && <p className="text-red-500 text-sm mt-4 font-bold text-center">{errorMsg}</p>}
-
-            <Link to="/admin" className="mt-4 font-bold cursor-pointer text-[#1c9be9] hover:underline">
-              Acesso do Administrador
-            </Link>
-            <Link to="/cadastrar" className="mt-2 text-sm text-gray-600 hover:text-[var(--h1-color)] hover:underline">
-              Não tem conta? Cadastre-se rápido
-            </Link>
-          </form>
+          </div>
         </div>
-
-        {/* Left Side - Image (Hidden in mobile by CSS/Tailwind) */}
-        <div className="hidden md:flex w-1/2 h-full justify-center items-center relative overflow-hidden">
-          {/* Placeholder if SVG is missing, using generic vehicle image approach */}
-          <img src="./img/carro-lateral.svg" alt="Illustration" className="w-[80%] max-w-[600px] object-contain" onError={(e) => e.target.style.display = 'none'} />
-        </div>
-
       </div>
 
-      {/* Modals Extras (Esqueci / Mudar Senha) */}
+      {/* Direita: Form (Estrutura idêntica ao cadastro) */}
+      <div className="register-form-area">
+        <div className="form-wrapper">
+          <div className="form-header">
+            <Link to="/" className="back-link"><ChevronLeft size={20} /> Voltar</Link>
+            <h2>Entrar</h2>
+            <div className="step-indicator">
+              <div className="step-dot active"></div>
+              <div className="step-dot"></div>
+              <div className="step-dot"></div>
+            </div>
+          </div>
+
+          <form onSubmit={handleLoginSubmit}>
+            {errorMsg && (
+              <div className="error-alert">
+                <AlertTriangle size={18} /> {errorMsg}
+              </div>
+            )}
+
+            <div className="form-step animate-fade-in">
+              <p className="section-title">Bem-vindo de volta!</p>
+              
+              <div className="input-row mt-6">
+                <div className="input-group col-span-2">
+                  <label>E-mail</label>
+                  <div className="input-with-icon">
+                    <Mail size={18} />
+                    <input 
+                      type="email" 
+                      value={email} 
+                      onChange={e => setEmail(e.target.value)} 
+                      required 
+                      placeholder="seu@email.com" 
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="input-row">
+                <div className="input-group col-span-2">
+                  <div className="flex justify-between items-center mb-1">
+                    <label>Senha</label>
+                    <span 
+                      onClick={() => setActiveModal('esqueceu')}
+                      className="text-xs font-bold text-blue-600 cursor-pointer hover:underline"
+                    >
+                      Esqueceu a senha?
+                    </span>
+                  </div>
+                  <div className="input-with-icon">
+                    <Lock size={18} />
+                    <input 
+                      type="password" 
+                      value={password} 
+                      onChange={e => setPassword(e.target.value)} 
+                      required 
+                      placeholder="••••••••" 
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <button 
+                type="submit" 
+                className="btn-primary-register mt-4 w-full" 
+                disabled={isLoading}
+              >
+                {isLoading ? 'Entrando...' : 'Entrar Agora'} 
+                <ChevronRight size={20} />
+              </button>
+            </div>
+          </form>
+
+          <p className="footer-auth-text">
+            Ainda não tem uma conta? <Link to="/cadastrar">Cadastre-se agora</Link>
+          </p>
+        </div>
+      </div>
+
+      {/* Modal Esqueci Senha */}
       {activeModal === 'esqueceu' && (
         <div className="fixed inset-0 z-50 flex justify-center items-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="relative bg-white w-full max-w-[500px] rounded-[30px] p-8 flex flex-col items-center animate-fade-in shadow-2xl">
+          <div className="relative bg-white w-full max-w-[450px] rounded-[30px] p-8 flex flex-col items-center animate-fade-in shadow-2xl">
             <button onClick={() => setActiveModal(null)} className="absolute top-6 left-6 text-gray-400 hover:text-red-500 transition-colors">
               <X size={28} />
             </button>
-            <h2 className="text-3xl font-bold mb-8 text-[var(--h1-color)]">Esqueceu a senha?</h2>
+            <h2 className="text-2xl font-black text-[#002b5e] mb-6">Recuperar Senha</h2>
 
             <form onSubmit={submitEsqueciSenha} className="w-full flex flex-col">
               <div className="mb-6 flex flex-col">
-                <label className="font-bold mb-2">Email</label>
-                <input type="email" required placeholder="Digite seu Email"
-                  className="h-[50px] rounded-full px-5 border border-[var(--h1-color)] w-full"
-                  value={modalForm.email} onChange={e => setModalForm({ ...modalForm, email: e.target.value })} />
+                <label className="font-bold text-sm text-gray-600 mb-2">E-mail</label>
+                <input 
+                  type="email" 
+                  required 
+                  placeholder="Digite seu e-mail cadastrado"
+                  className="h-[50px] rounded-xl px-5 border border-gray-200 w-full focus:border-[#002b5e] focus:outline-none"
+                  value={modalForm.email} 
+                  onChange={e => setModalForm({ email: e.target.value })} 
+                />
               </div>
-              <button type="submit" className="self-center bg-[var(--h1-color)] text-white w-[150px] h-[45px] rounded-full font-bold hover:bg-[#001f44]">Enviar</button>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {activeModal === 'mudar' && (
-        <div className="fixed inset-0 z-50 flex justify-center items-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="relative bg-white w-full max-w-[500px] max-h-[90vh] overflow-y-auto rounded-[30px] p-8 flex flex-col items-center animate-fade-in shadow-2xl">
-            <button onClick={() => setActiveModal(null)} className="absolute top-6 left-6 text-gray-400 hover:text-red-500 transition-colors">
-              <X size={28} />
-            </button>
-            <h2 className="text-3xl font-bold mb-8 text-[var(--h1-color)] text-center">Mudar a Senha?</h2>
-
-            <form onSubmit={submitMudarSenha} className="w-full flex flex-col">
-              <div className="mb-4 flex flex-col">
-                <label className="font-bold mb-2">Email</label>
-                <input type="email" required placeholder="Digite seu Email"
-                  className="h-[50px] w-full rounded-full px-5 border border-[var(--h1-color)]"
-                  value={modalForm.email} onChange={e => setModalForm({ ...modalForm, email: e.target.value })} />
-              </div>
-              <div className="mb-4 flex flex-col">
-                <label className="font-bold mb-2">Senha Atual</label>
-                <input type="password" required placeholder="Digite sua Senha Atual"
-                  className="h-[50px] w-full rounded-full px-5 border border-[var(--h1-color)]"
-                  value={modalForm.senhaAtual} onChange={e => setModalForm({ ...modalForm, senhaAtual: e.target.value })} />
-              </div>
-              <div className="mb-4 flex flex-col">
-                <label className="font-bold mb-2">Senha Nova</label>
-                <input type="password" required placeholder="Digite sua Senha Nova"
-                  className="h-[50px] w-full rounded-full px-5 border border-[var(--h1-color)]"
-                  value={modalForm.senhaNova} onChange={e => setModalForm({ ...modalForm, senhaNova: e.target.value })} />
-              </div>
-              <div className="mb-8 flex flex-col">
-                <label className="font-bold mb-2">Repita a Senha Nova</label>
-                <input type="password" required placeholder="Repita sua Senha Nova"
-                  className="h-[50px] w-full rounded-full px-5 border border-[var(--h1-color)]"
-                  value={modalForm.senhaRepetir} onChange={e => setModalForm({ ...modalForm, senhaRepetir: e.target.value })} />
-              </div>
-              <button type="submit" className="self-center bg-[var(--h1-color)] text-white w-[150px] h-[45px] rounded-full font-bold hover:bg-[#001f44]">Atualizar</button>
+              <button 
+                type="submit" 
+                className="bg-[#002b5e] text-white w-full h-[50px] rounded-xl font-bold hover:bg-[#001f44] transition-all"
+              >
+                Enviar Link
+              </button>
             </form>
           </div>
         </div>
@@ -203,3 +194,4 @@ const Login = () => {
 };
 
 export default Login;
+
